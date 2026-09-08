@@ -108,6 +108,37 @@ describe("dynamic patient simulation", () => {
     expect(result.log[0].message).toContain("構音不清");
   });
 
+  it("reports a complete circulation assessment", () => {
+    const scenario = simulationScenarios[0];
+    const result = performSimulationAction(
+      scenario,
+      createSimulationState(scenario),
+      actionById["check-pulse"],
+      DIFFICULTIES.standard,
+    );
+
+    expect(result.log[0].message).toContain("橈動脈");
+    expect(result.log[0].message).toContain("脈搏");
+    expect(result.log[0].message).toContain("微血管充填");
+    expect(result.log[0].message).toContain("皮膚觀察");
+    expect(result.revealed).toContain("skin");
+  });
+
+  it("recognizes absent circulation during pulse assessment", () => {
+    const scenario = simulationScenarios.find(
+      (item) => item.id === "arrest-gym",
+    )!;
+    const result = performSimulationAction(
+      scenario,
+      createSimulationState(scenario),
+      actionById["check-pulse"],
+      DIFFICULTIES.standard,
+    );
+
+    expect(result.log[0].message).toContain("無有效循環徵象");
+    expect(result.log[0].message).toContain("心跳停止");
+  });
+
   it("records repeatable AVPU and reports the complete scale", () => {
     const scenario = simulationScenarios[3];
     const result = performSimulationAction(

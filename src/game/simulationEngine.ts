@@ -230,7 +230,7 @@ function buildActionResult(
     case "check-breathing":
       return `呼吸評估：${observation("breathing")} 計數為 ${Math.round(physiology.respiratoryRate)} 次／分。`;
     case "check-pulse":
-      return `循環評估：脈搏 ${Math.round(physiology.pulse)} 次／分，${physiology.perfusion >= 60 ? "末梢灌流尚可" : physiology.perfusion >= 35 ? "末梢灌流偏差" : "末梢灌流明顯不足"}。`;
+      return circulationAssessment(physiology, observation("skin"));
     case "expose-examine":
       return `傷病檢查：${observation("injuries")} ${observation("bleeding")}`;
     case "bp-cuff":
@@ -280,6 +280,61 @@ function buildActionResult(
     default:
       return `已完成「${action.label}」，目前病況指標 ${getPatientCondition(physiology)}。`;
   }
+}
+
+function circulationAssessment(
+  physiology: Physiology,
+  skinFinding: string,
+): string {
+  const pulse = Math.round(physiology.pulse);
+  if (pulse <= 0 || physiology.perfusion <= 0) {
+    return `循環評估：頸動脈與橈動脈均無法觸及，未測得有效脈搏；指端微血管充填無法判讀。${skinFinding} 綜合判斷：無有效循環徵象，應立即啟動心跳停止處置流程。`;
+  }
+
+  const radialFinding =
+    physiology.perfusion >= 55
+      ? "雙側橈動脈可清楚觸及"
+      : physiology.perfusion >= 30
+        ? "雙側橈動脈可觸及但細弱"
+        : "橈動脈難以觸及，頸動脈仍可觸得";
+  const rateFinding =
+    pulse > 150
+      ? "極度心搏過速"
+      : pulse > 100
+        ? "心搏過速"
+        : pulse < 50
+          ? "明顯心搏過緩"
+          : pulse < 60
+            ? "心搏偏慢"
+            : "速率在成人一般範圍";
+  const strengthFinding =
+    physiology.perfusion >= 70
+      ? "脈搏強度飽滿"
+      : physiology.perfusion >= 50
+        ? "脈搏強度稍弱"
+        : physiology.perfusion >= 30
+          ? "脈搏細弱"
+          : "中央脈搏微弱";
+  const refillSeconds =
+    physiology.perfusion >= 70
+      ? "小於 2 秒"
+      : physiology.perfusion >= 55
+        ? "約 2 秒"
+        : physiology.perfusion >= 35
+          ? "約 3 秒"
+          : physiology.perfusion >= 20
+            ? "約 4 秒"
+            : "超過 5 秒";
+  const conclusion =
+    physiology.perfusion >= 70
+      ? "目前未見明顯周邊循環障礙，仍需配合血壓與後續趨勢判讀"
+      : physiology.perfusion >= 50
+        ? "已有早期周邊灌流下降，需警覺疼痛、脫水或代償性休克"
+        : physiology.perfusion >= 30
+          ? "脈搏與微血管充填顯示明顯循環灌流異常，符合休克警訊"
+          : "中央與末梢循環均嚴重受損，可能正進入失代償性休克";
+
+  return `循環評估：${radialFinding}；脈搏 ${pulse} 次／分，${rateFinding}，觸診期間節律規則，${strengthFinding}。指端微血管充填 ${refillSeconds}。皮膚觀察：${skinFinding} 綜合判斷：${conclusion}。`;
 }
 
 export function advanceWithoutAction(

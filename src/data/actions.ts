@@ -73,7 +73,7 @@ export const simulationActions: SimulationAction[] = [
     kind: "assessment",
     duration: 15,
     description: "評估速率、規則、強弱及微血管充填。",
-    reveals: ["pulse"],
+    reveals: ["pulse", "skin"],
     repeatable: true,
   },
   {
