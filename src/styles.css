@@ -1,1627 +1,290 @@
-@import url("https://fonts.googleapis.com/css2?family=Chivo:wght@400;600;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap");
-
-:root {
-  font-family: "Noto Sans TC", sans-serif;
-  color: #eaf7f4;
-  background: #061215;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  --ink: #eaf7f4;
-  --muted: #86a5a2;
-  --line: rgba(142, 191, 183, 0.16);
-  --panel: rgba(12, 34, 38, 0.86);
-  --orange: #ff6433;
-  --orange-light: #ff9d72;
-  --mint: #58e6c2;
-  --yellow: #ffd166;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at 15% 15%, rgba(40, 123, 117, 0.17), transparent 32rem),
-    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-    #061215;
-  background-size: auto, 42px 42px, 42px 42px, auto;
-}
-
-button {
-  font: inherit;
-}
-
-button:focus-visible {
-  outline: 3px solid var(--yellow);
-  outline-offset: 3px;
-}
-
-.shell {
-  min-height: 100vh;
-  padding: 24px clamp(18px, 3vw, 48px) 40px;
-}
-
-.panel {
-  border: 1px solid var(--line);
-  background: var(--panel);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(16px);
-}
-
-.top-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.brand-mark,
-.eyebrow,
-.mission-metrics,
-.vital strong,
-.grade,
-.total-score strong {
-  font-family: "Chivo", sans-serif;
-}
-
-.brand-mark {
-  color: var(--orange);
-  font-weight: 900;
-  letter-spacing: 0.12em;
-}
-
-.sound-toggle {
-  color: var(--muted);
-  border: 1px solid var(--line);
-  background: transparent;
-  border-radius: 999px;
-  padding: 8px 14px;
-  cursor: pointer;
-}
-
-.hero {
-  max-width: 1400px;
-  min-height: calc(100vh - 100px);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.75fr);
-  gap: clamp(48px, 8vw, 128px);
-  align-items: center;
-}
-
-.eyebrow {
-  color: var(--mint);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.hero-copy h1 {
-  margin: 20px 0;
-  font: 900 clamp(4.6rem, 11vw, 10rem) / 0.78 "Chivo", sans-serif;
-  letter-spacing: -0.075em;
-  text-transform: uppercase;
-}
-
-.hero-copy h1 em {
-  color: var(--orange);
-  font: inherit;
-}
-
-.hero-copy > p {
-  max-width: 600px;
-  color: #b7cdca;
-  font-size: clamp(1.05rem, 1.6vw, 1.35rem);
-  line-height: 1.8;
-}
-
-.record-strip {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 24px;
-  margin-top: 34px;
-  color: var(--muted);
-  font-size: 0.86rem;
-}
-
-.record-strip span::before {
-  content: "";
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin: 0 9px 2px 0;
-  border-radius: 50%;
-  background: var(--mint);
-}
-
-.start-card {
-  padding: clamp(24px, 4vw, 44px);
-  border-radius: 3px;
-}
-
-.start-card h2,
-.section-title h2 {
-  margin: 7px 0 0;
-  font-size: 1.45rem;
-}
-
-.difficulty-list {
-  display: grid;
-  gap: 10px;
-  margin: 28px 0;
-}
-
-.difficulty-list button {
-  display: grid;
-  gap: 5px;
-  padding: 17px 18px;
-  color: var(--ink);
-  text-align: left;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.025);
-  cursor: pointer;
-  transition: 160ms ease;
-}
-
-.difficulty-list button:hover,
-.difficulty-list button.selected {
-  border-color: var(--orange);
-  background: rgba(255, 100, 51, 0.08);
-  transform: translateX(4px);
-}
-
-.difficulty-list button.selected::before {
-  content: "SELECTED";
-  color: var(--orange-light);
-  font: 700 0.62rem "Chivo", sans-serif;
-  letter-spacing: 0.13em;
-}
-
-.difficulty-list span {
-  color: var(--muted);
-  font-size: 0.84rem;
-}
-
-.primary-button,
-.secondary-button,
-.transport-button {
-  min-height: 52px;
-  padding: 14px 22px;
-  border: 0;
-  font-weight: 900;
-  cursor: pointer;
-  transition: 160ms ease;
-}
-
-.primary-button {
-  width: 100%;
-  color: #170a05;
-  background: var(--orange);
-  box-shadow: 6px 6px 0 rgba(255, 100, 51, 0.2);
-}
-
-.primary-button:hover,
-.transport-button:hover {
-  background: var(--orange-light);
-  transform: translateY(-2px);
-}
-
-.secondary-button {
-  color: var(--ink);
-  border: 1px solid var(--line);
-  background: transparent;
-}
-
-.disclaimer {
-  display: block;
-  margin-top: 22px;
-  color: var(--muted);
-  line-height: 1.7;
-}
-
-.single-mode-copy {
-  margin: 28px 0;
-  padding: 18px;
-  color: #c1d5d2;
-  border: 1px solid var(--line);
-  background: rgba(88, 230, 194, 0.045);
-  line-height: 1.7;
-}
-
-.centered-shell {
-  display: grid;
-  place-items: center;
-}
-
-.dispatch-card,
-.debrief,
-.summary {
-  width: min(100%, 720px);
-  padding: clamp(28px, 6vw, 62px);
-  position: relative;
-  overflow: hidden;
-}
-
-.dispatch-card::after {
-  content: "119";
-  position: absolute;
-  right: -16px;
-  bottom: -52px;
-  color: rgba(88, 230, 194, 0.04);
-  font: 900 12rem "Chivo", sans-serif;
-  pointer-events: none;
-}
-
-.dispatch-pulse {
-  width: 12px;
-  height: 12px;
-  margin-bottom: 34px;
-  border-radius: 50%;
-  background: var(--orange);
-  box-shadow: 0 0 0 9px rgba(255, 100, 51, 0.12);
-  animation: pulse 1.6s infinite;
-}
-
-@keyframes pulse {
-  50% {
-    box-shadow: 0 0 0 18px rgba(255, 100, 51, 0);
-  }
-}
-
-.dispatch-card h1,
-.debrief h1,
-.summary h1 {
-  margin: 12px 0 18px;
-  font: 900 clamp(2.3rem, 7vw, 4.4rem) / 1 "Chivo", "Noto Sans TC", sans-serif;
-  letter-spacing: -0.05em;
-}
-
-.dispatch-copy {
-  color: #d5e5e2;
-  font-size: 1.2rem;
-  line-height: 1.8;
-}
-
-.dispatch-card dl {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  margin: 30px 0;
-  border-block: 1px solid var(--line);
-}
-
-.dispatch-card dl div {
-  padding: 18px 12px;
-  border-right: 1px solid var(--line);
-}
-
-.dispatch-card dl div:last-child {
-  border-right: 0;
-}
-
-.dispatch-card dt {
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-.dispatch-card dd {
-  margin: 5px 0 0;
-  font-weight: 700;
-}
-
-.tutorial-note,
-.clinical-note,
-.missed-actions {
-  margin: 22px 0;
-  padding: 18px 20px;
-  border-left: 3px solid var(--mint);
-  background: rgba(88, 230, 194, 0.06);
-}
-
-.tutorial-note p,
-.clinical-note p,
-.missed-actions p {
-  margin: 7px 0 0;
-  color: #b8cdca;
-  line-height: 1.7;
-}
-
-.game-layout {
-  max-width: 1540px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(300px, 0.82fr) minmax(430px, 1.3fr) minmax(280px, 0.7fr);
-  gap: 14px;
-}
-
-.mission-bar {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  padding: 8px 2px 18px;
-}
-
-.mission-bar h1 {
-  margin: 5px 0 0;
-  font-size: clamp(1.8rem, 3vw, 3rem);
-}
-
-.mission-metrics {
-  display: flex;
-  gap: 12px;
-  color: var(--yellow);
-  font-weight: 700;
-}
-
-.mission-metrics span {
-  min-width: 88px;
-  padding: 9px 13px;
-  text-align: center;
-  border: 1px solid rgba(255, 209, 102, 0.22);
-  background: rgba(255, 209, 102, 0.05);
-}
-
-.patient-panel,
-.actions-panel,
-.log-panel {
-  padding: 24px;
-}
-
-.patient-heading {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.patient-heading h2 {
-  margin: 6px 0;
-  font-size: 1.65rem;
-}
-
-.patient-heading p {
-  margin: 0;
-  color: var(--muted);
-}
-
-.stability-orb {
-  flex: 0 0 74px;
-  width: 74px;
-  height: 74px;
-  display: grid;
-  place-content: center;
-  text-align: center;
-  border: 2px solid currentColor;
-  border-radius: 50%;
-}
-
-.stability-orb strong {
-  font: 900 1.6rem "Chivo", sans-serif;
-}
-
-.stability-orb span {
-  font-size: 0.66rem;
-}
-
-.stability-orb.stable {
-  color: var(--mint);
-}
-
-.stability-orb.warning {
-  color: var(--yellow);
-}
-
-.stability-orb.critical {
-  color: var(--orange);
-}
-
-.vitals-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  margin: 26px 0;
-  border-top: 1px solid var(--line);
-  border-left: 1px solid var(--line);
-}
-
-.vital {
-  min-height: 73px;
-  display: grid;
-  align-content: center;
-  gap: 3px;
-  padding: 12px;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-
-.vital:first-child {
-  grid-column: 1 / -1;
-}
-
-.vital span,
-.scene-note span {
-  color: var(--muted);
-  font-size: 0.72rem;
-}
-
-.vital strong {
-  font-size: 1.08rem;
-}
-
-.scene-note {
-  padding: 16px;
-  border: 1px dashed rgba(255, 209, 102, 0.25);
-  background: rgba(255, 209, 102, 0.035);
-}
-
-.scene-note p {
-  margin: 7px 0 0;
-  color: #c6d8d5;
-  line-height: 1.7;
-}
-
-.section-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 22px;
-}
-
-.hint-chip {
-  padding: 7px 10px;
-  color: var(--mint);
-  border: 1px solid rgba(88, 230, 194, 0.25);
-  font-size: 0.75rem;
-}
-
-.action-groups {
-  display: grid;
-  gap: 18px;
-}
-
-.action-group h3 {
-  margin: 0 0 8px;
-  color: var(--muted);
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
-}
-
-.action-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.action-button {
-  min-height: 61px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 14px;
-  color: var(--ink);
-  text-align: left;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.025);
-  cursor: pointer;
-  transition: 140ms ease;
-}
-
-.action-button:hover:not(:disabled) {
-  border-color: var(--mint);
-  background: rgba(88, 230, 194, 0.07);
-  transform: translateY(-2px);
-}
-
-.action-button small {
-  flex: 0 0 auto;
-  color: var(--muted);
-}
-
-.action-button.completed {
-  color: #6f918d;
-  border-color: transparent;
-  background: rgba(88, 230, 194, 0.035);
-}
-
-.transport-button {
-  width: 100%;
-  margin-top: 22px;
-  color: #160a06;
-  background: var(--orange);
-}
-
-.transport-button:disabled {
-  color: #63817d;
-  background: #173235;
-  cursor: not-allowed;
-}
-
-.log-panel {
-  max-height: calc(100vh - 145px);
-  overflow: auto;
-}
-
-.empty-log {
-  color: var(--muted);
-  line-height: 1.7;
-}
-
-.event-log {
-  display: grid;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.event-log li {
-  position: relative;
-  padding: 15px 28px 15px 16px;
-  border-left: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-
-.event-log li::before {
-  content: "";
-  position: absolute;
-  top: 21px;
-  left: -4px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--mint);
-}
-
-.event-log li > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 0.84rem;
-}
-
-.event-log time {
-  color: var(--muted);
-}
-
-.event-log p {
-  margin: 7px 0 0;
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.55;
-}
-
-.event-log li > span {
-  position: absolute;
-  right: 0;
-  bottom: 14px;
-  font: 700 0.72rem "Chivo", sans-serif;
-}
-
-.positive {
-  color: var(--mint);
-}
-
-.negative {
-  color: var(--orange);
-}
-
-.debrief,
-.summary {
-  text-align: center;
-}
-
-.grade {
-  width: 80px;
-  height: 80px;
-  display: grid;
-  place-content: center;
-  margin: 0 auto 22px;
-  color: var(--mint);
-  border: 3px solid currentColor;
-  border-radius: 50%;
-  font-size: 2.5rem;
-  font-weight: 900;
-}
-
-.grade-C {
-  color: var(--orange);
-}
-
-.grade-B {
-  color: var(--yellow);
-}
-
-.score-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  margin: 30px 0;
-  border-block: 1px solid var(--line);
-}
-
-.score-row > div {
-  display: grid;
-  gap: 5px;
-  padding: 20px 8px;
-  border-right: 1px solid var(--line);
-}
-
-.score-row > div:last-child {
-  border-right: 0;
-}
-
-.score-row strong {
-  color: var(--yellow);
-  font: 900 1.45rem "Chivo", sans-serif;
-}
-
-.score-row span,
-.total-score span {
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-.debrief .clinical-note,
-.debrief .missed-actions {
-  text-align: left;
-}
-
-.missed-actions {
-  border-left-color: var(--orange);
-  background: rgba(255, 100, 51, 0.06);
-}
-
-.learning-list {
-  display: grid;
-  gap: 9px;
-  margin: 22px 0 28px;
-  padding-left: 24px;
-  color: #b8cdca;
-  text-align: left;
-  line-height: 1.6;
-}
-
-.summary > p {
-  color: var(--muted);
-  line-height: 1.7;
-}
-
-.total-score {
-  display: grid;
-  margin: 32px auto;
-}
-
-.total-score strong {
-  color: var(--orange);
-  font-size: clamp(4rem, 12vw, 7rem);
-  line-height: 1;
-}
-
-.case-results {
-  display: grid;
-  margin: 20px 0;
-  border-top: 1px solid var(--line);
-}
-
-.case-results div {
-  display: flex;
-  justify-content: space-between;
-  padding: 14px 6px;
-  border-bottom: 1px solid var(--line);
-}
-
-.case-results strong {
-  color: var(--mint);
-}
-
-.best-score {
-  color: var(--yellow) !important;
-}
-
-.button-row {
-  display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: 10px;
-  margin-top: 28px;
-}
-
-@media (max-width: 1100px) {
-  .game-layout {
-    grid-template-columns: minmax(280px, 0.8fr) minmax(430px, 1.2fr);
-  }
-
-  .log-panel {
-    grid-column: 1 / -1;
-    max-height: none;
-  }
-
-  .event-log {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-  }
-}
-
-@media (max-width: 800px) {
-  .hero {
-    grid-template-columns: 1fr;
-    padding: 70px 0;
-  }
-
-  .hero-copy h1 {
-    font-size: clamp(4.1rem, 21vw, 8rem);
-  }
-
-  .game-layout {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .mission-bar {
-    align-items: start;
-  }
-
-  .patient-panel {
-    order: 1;
-  }
-
-  .actions-panel {
-    order: 2;
-  }
-
-  .log-panel {
-    order: 3;
-  }
-}
-
-@media (max-width: 560px) {
-  .shell {
-    padding: 16px 12px 26px;
-  }
-
-  .top-nav {
-    padding: 0 4px;
-  }
-
-  .hero {
-    padding: 48px 0;
-    gap: 42px;
-  }
-
-  .hero-copy h1 {
-    font-size: clamp(3.5rem, 22vw, 6.3rem);
-  }
-
-  .dispatch-card,
-  .debrief,
-  .summary,
-  .patient-panel,
-  .actions-panel,
-  .log-panel {
-    padding: 22px 18px;
-  }
-
-  .dispatch-card dl {
-    grid-template-columns: 1fr;
-  }
-
-  .dispatch-card dl div {
-    display: flex;
-    justify-content: space-between;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .action-list,
-  .event-log {
-    grid-template-columns: 1fr;
-  }
-
-  .mission-bar {
-    display: grid;
-    gap: 14px;
-  }
-
-  .mission-metrics {
-    width: 100%;
-  }
-
-  .mission-metrics span {
-    flex: 1;
-  }
-
-  .score-row strong {
-    font-size: 1.12rem;
-  }
-
-  .score-row span {
-    font-size: 0.65rem;
-  }
-
-  .button-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-.sim-layout {
-  max-width: 1540px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(420px, 1.15fr) minmax(420px, 1fr) minmax(280px, 0.7fr);
-  gap: 14px;
-}
-
-.sim-layout .mission-bar,
-.environment-strip {
-  grid-column: 1 / -1;
-}
-
-.environment-strip {
-  display: grid;
-  grid-template-columns: 1fr 1fr 0.8fr 0.7fr 2fr;
-  padding: 0;
-  overflow: hidden;
-}
-
-.environment-strip > div {
-  min-height: 70px;
-  display: grid;
-  align-content: center;
-  gap: 5px;
-  padding: 13px 18px;
-  border-right: 1px solid var(--line);
-}
-
-.environment-strip > div:last-child {
-  border-right: 0;
-}
-
-.environment-strip span {
-  color: var(--muted);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-}
-
-.environment-strip strong {
-  font-size: 0.88rem;
-}
-
-.clinical-board,
-.toolbox,
-.sim-log {
-  padding: 24px;
-}
-
-.critical-alert {
-  margin: 20px 0;
-  padding: 14px 16px;
-  color: #ffd5c9;
-  border: 1px solid rgba(255, 100, 51, 0.45);
-  background: rgba(255, 100, 51, 0.12);
-  font-weight: 700;
-  line-height: 1.6;
-  animation: pulse 1.4s infinite;
-}
-
-.monitor-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  margin: 24px 0;
-  background: var(--line);
-  border: 1px solid var(--line);
-}
-
-.monitor-value {
-  min-height: 88px;
-  display: grid;
-  align-content: center;
-  gap: 3px;
-  padding: 12px 14px;
-  background: #0a2024;
-}
-
-.monitor-value span,
-.monitor-value small {
-  color: var(--muted);
-  font-size: 0.68rem;
-}
-
-.monitor-value strong {
-  color: var(--mint);
-  font: 700 1.02rem "Chivo", "Noto Sans TC", sans-serif;
-}
-
-.monitor-value.stale strong {
-  color: var(--yellow);
-}
-
-.monitor-value.stale {
-  background: rgba(255, 209, 102, 0.06);
-}
-
-.findings h3 {
-  color: var(--muted);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-}
-
-.findings article {
-  padding: 12px 0;
-  border-top: 1px solid var(--line);
-}
-
-.findings article span {
-  color: var(--mint);
-  font-size: 0.72rem;
-}
-
-.findings article p,
-.locked-copy {
-  margin: 5px 0 0;
-  color: #b6cbc8;
-  font-size: 0.84rem;
-  line-height: 1.65;
-}
-
-.category-tabs {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 2px;
-  margin-bottom: 12px;
-}
-
-.category-tabs button {
-  padding: 10px 5px;
-  color: var(--muted);
-  border: 1px solid var(--line);
-  background: transparent;
-  cursor: pointer;
-}
-
-.category-tabs button.active {
-  color: #061215;
-  border-color: var(--mint);
-  background: var(--mint);
-  font-weight: 900;
-}
-
-.observe-time-button {
-  width: 100%;
-  margin: 0 0 12px;
-  padding: 10px;
-  color: var(--yellow);
-  border: 1px dashed rgba(255, 209, 102, 0.35);
-  background: rgba(255, 209, 102, 0.04);
-  cursor: pointer;
-}
-
-.sim-action-list {
-  display: grid;
-  gap: 8px;
-  max-height: 660px;
-  overflow: auto;
-  padding-right: 4px;
-}
-
-.sim-action-list > button {
-  min-height: 76px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 13px 14px;
-  color: var(--ink);
-  text-align: left;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.025);
-  cursor: pointer;
-  transition: 140ms ease;
-}
-
-.sim-action-list > button:hover:not(:disabled) {
-  border-color: var(--orange);
-  background: rgba(255, 100, 51, 0.07);
-  transform: translateX(3px);
-}
-
-.sim-action-list > button.completed {
-  opacity: 0.45;
-}
-
-.sim-action-list > button p {
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: 0.73rem;
-  line-height: 1.5;
-}
-
-.sim-action-list > button > span {
-  flex: 0 0 auto;
-  color: var(--yellow);
-  font: 700 0.72rem "Chivo", sans-serif;
-}
-
-.sim-log {
-  max-height: 780px;
-  overflow: auto;
-}
-
-.sim-log h2 {
-  margin: 6px 0 18px;
-  font-size: 1.35rem;
-}
-
-.sim-log ol {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.sim-log li {
-  padding: 14px 0 14px 12px;
-  border-bottom: 1px solid var(--line);
-  border-left: 2px solid var(--muted);
-}
-
-.sim-log li.good {
-  border-left-color: var(--mint);
-}
-
-.sim-log li.danger {
-  border-left-color: var(--orange);
-}
-
-.sim-log li > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 0.78rem;
-}
-
-.sim-log li time {
-  color: var(--muted);
-}
-
-.sim-log li p {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 0.74rem;
-  line-height: 1.55;
-}
-
-.outcome-copy {
-  color: #b7cdca;
-  font-size: 1.05rem;
-}
-
-.decision-stats {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin: -10px 0 24px;
-}
-
-.decision-stats span {
-  padding: 7px 11px;
-  color: var(--muted);
-  border: 1px solid var(--line);
-  font-size: 0.75rem;
-}
-
-.report-comparison {
-  margin: 26px 0;
-  text-align: left;
-}
-
-.report-comparison > h2 {
-  margin: 0 0 12px;
-  font-size: 1.1rem;
-}
-
-.comparison-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.comparison-grid article {
-  display: flex;
-  flex-direction: column;
-  min-height: 280px;
-  padding: 18px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.comparison-grid article:first-child {
-  border-top: 3px solid var(--mint);
-}
-
-.comparison-grid article:last-child {
-  border-top: 3px solid var(--yellow);
-}
-
-.comparison-label {
-  color: var(--muted);
-  font: 700 0.65rem "Chivo", sans-serif;
-  letter-spacing: 0.1em;
-}
-
-.comparison-grid h3 {
-  margin: 8px 0 12px;
-  font-size: 0.95rem;
-}
-
-.comparison-grid ul,
-.comparison-grid p {
-  margin: 0;
-  padding-left: 18px;
-  color: #bfd2cf;
-  font-size: 0.82rem;
-  line-height: 1.7;
-}
-
-.comparison-grid p {
-  padding-left: 0;
-}
-
-.gcs-comparison {
-  display: grid;
-  gap: 4px;
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid var(--line);
-}
-
-.gcs-comparison span {
-  color: var(--muted);
-  font-size: 0.7rem;
-}
-
-.gcs-comparison strong {
-  color: var(--yellow);
-  font: 700 1rem "Chivo", sans-serif;
-}
-
-@media (max-width: 600px) {
-  .comparison-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.result-toast {
-  position: fixed;
-  z-index: 50;
-  top: 24px;
-  left: 50%;
-  width: min(calc(100vw - 28px), 620px);
-  padding: 18px 20px;
-  border: 1px solid var(--mint);
-  background: rgba(7, 27, 31, 0.97);
-  box-shadow: 0 18px 70px rgba(0, 0, 0, 0.55);
-  transform: translateX(-50%);
-  animation: result-toast 4.8s ease both;
-}
-
-.result-toast.danger {
-  border-color: var(--orange);
-}
-
-.result-toast > span {
-  color: var(--mint);
-  font: 700 0.65rem "Chivo", sans-serif;
-  letter-spacing: 0.14em;
-}
-
-.result-toast.danger > span {
-  color: var(--orange-light);
-}
-
-.result-toast strong {
-  display: block;
-  margin-top: 5px;
-}
-
-.result-toast p {
-  margin: 7px 0 0;
-  color: #c2d7d3;
-  font-size: 0.86rem;
-  line-height: 1.6;
-}
-
-@keyframes result-toast {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -14px);
-  }
-  8%,
-  76% {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
-  100% {
-    opacity: 0;
-    visibility: hidden;
-    transform: translate(-50%, -8px);
-  }
-}
-
-.procedure-backdrop {
-  position: fixed;
-  z-index: 100;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 18px;
-  background: rgba(1, 10, 12, 0.82);
-  backdrop-filter: blur(8px);
-}
-
-.procedure-modal {
-  width: min(100%, 760px);
-  max-height: calc(100vh - 36px);
-  overflow: auto;
-  padding: clamp(22px, 4vw, 38px);
-  border-color: rgba(88, 230, 194, 0.35);
-  animation: procedure-enter 180ms ease-out;
-}
-
-@keyframes procedure-enter {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.98);
-  }
-}
-
-.procedure-modal > header {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-  gap: 18px;
-  margin-bottom: 24px;
-}
-
-.procedure-modal > header h2 {
-  margin: 5px 0 0;
-  font-size: clamp(1.65rem, 5vw, 2.4rem);
-}
-
-.procedure-modal > header > button {
-  width: 40px;
-  height: 40px;
-  color: var(--muted);
-  border: 1px solid var(--line);
-  background: transparent;
-  font-size: 1.5rem;
-  cursor: pointer;
-}
-
-.procedure-body {
-  display: grid;
-  gap: 20px;
-}
-
-.procedure-instruction {
-  margin: 0;
-  padding: 14px 16px;
-  color: #c1d5d2;
-  border-left: 3px solid var(--yellow);
-  background: rgba(255, 209, 102, 0.06);
-  line-height: 1.65;
-}
-
-.stimulus-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.stimulus-grid button,
-.procedure-choices button {
-  min-height: 48px;
-  padding: 10px 13px;
-  color: var(--ink);
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.025);
-  cursor: pointer;
-}
-
-.stimulus-grid button:hover,
-.procedure-choices button:hover,
-.procedure-choices button.selected {
-  border-color: var(--mint);
-  background: rgba(88, 230, 194, 0.09);
-}
-
-.patient-responses {
-  min-height: 76px;
-  padding: 14px 16px;
-  border: 1px solid var(--line);
-  background: #07191d;
-}
-
-.patient-responses p {
-  margin: 4px 0;
-  color: var(--mint);
-  line-height: 1.55;
-}
-
-.gcs-action-group {
-  padding: 14px;
-  border: 1px solid var(--line);
-}
-
-.gcs-action-group h3 {
-  margin: 0 0 10px;
-  color: var(--mint);
-  font-size: 0.85rem;
-}
-
-.gcs-action-group > div {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 7px;
-}
-
-.gcs-action-group button {
-  min-height: 48px;
-  padding: 9px 12px;
-  color: var(--ink);
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.025);
-  cursor: pointer;
-}
-
-.gcs-action-group button:hover,
-.gcs-action-group button:focus {
-  border-color: var(--mint);
-  background: rgba(88, 230, 194, 0.08);
-}
-
-.gcs-response-board {
-  display: grid;
-  gap: 7px;
-  max-height: 260px;
-  overflow: auto;
-  padding: 12px;
-  border: 1px solid var(--line);
-  background: #07191d;
-}
-
-.gcs-response-board article {
-  padding: 10px 12px;
-  border-left: 2px solid var(--yellow);
-  background: rgba(255, 209, 102, 0.035);
-}
-
-.gcs-response-board span {
-  color: var(--yellow);
-  font-size: 0.7rem;
-}
-
-.gcs-response-board p {
-  margin: 5px 0 0;
-  color: #c8dad7;
-  font-size: 0.8rem;
-  line-height: 1.55;
-}
-
-.score-inputs {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.score-inputs label {
-  display: grid;
-  gap: 6px;
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-.score-inputs input {
-  width: 100%;
-  padding: 11px;
-  color: var(--ink);
-  border: 1px solid var(--line);
-  background: #07191d;
-  font: 700 1rem "Chivo", sans-serif;
-}
-
-.procedure-field {
-  margin: 0;
-  padding: 14px;
-  border: 1px solid var(--line);
-}
-
-.procedure-field legend,
-.range-field > span {
-  padding: 0 6px;
-  color: var(--muted);
-  font-size: 0.76rem;
-}
-
-.procedure-choices {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.procedure-choices button {
-  flex: 1 1 130px;
-}
-
-.range-field {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px;
-  padding: 14px;
-  border: 1px solid var(--line);
-}
-
-.range-field strong {
-  color: var(--yellow);
-}
-
-.range-field input {
-  grid-column: 1 / -1;
-  width: 100%;
-  accent-color: var(--orange);
-}
-
-.check-grid {
-  display: grid;
-  gap: 8px;
-}
-
-.check-grid label {
-  padding: 12px;
-  color: #c3d7d4;
-  border: 1px solid var(--line);
-}
-
-.check-grid input {
-  margin-right: 9px;
-  accent-color: var(--mint);
-}
-
-.procedure-submit {
-  margin-top: 4px;
-}
-
-.procedure-submit:disabled {
-  color: #698985;
-  background: #173236;
-  box-shadow: none;
-  cursor: not-allowed;
-}
-
-.transport-reason-field {
-  display: grid;
-  gap: 8px;
-}
-
-.transport-reason-field > span {
-  color: var(--mint);
-  font-weight: 700;
-}
-
-.transport-reason-field textarea {
-  width: 100%;
-  resize: vertical;
-  padding: 14px;
-  color: var(--ink);
-  border: 1px solid var(--line);
-  background: #07191d;
-  font: inherit;
-  line-height: 1.65;
-}
-
-.transport-reason-field textarea:focus {
-  border-color: var(--mint);
-  outline: 2px solid rgba(88, 230, 194, 0.18);
-}
-
-.transport-reason-field small {
-  color: var(--muted);
-  text-align: right;
-}
-
-@media (max-width: 560px) {
-  .procedure-backdrop {
-    padding: 8px;
-  }
-
-  .procedure-modal {
-    max-height: calc(100vh - 16px);
-    padding: 20px 16px;
-  }
-
-  .stimulus-grid,
-  .score-inputs {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .gcs-action-group > div {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 1180px) {
-  .sim-layout {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .sim-log {
-    grid-column: 1 / -1;
-    max-height: none;
-  }
-
-  .environment-strip {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  .environment-strip .hazards {
-    grid-column: 1 / -1;
-    border-top: 1px solid var(--line);
-  }
-}
-
-@media (max-width: 800px) {
-  .sim-layout {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .environment-strip {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .environment-strip .hazards {
-    grid-column: 1 / -1;
-  }
-
-  .category-tabs {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: #0a2024;
-  }
-}
-
-@media (max-width: 480px) {
-  .monitor-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .category-tabs {
-    grid-template-columns: repeat(5, minmax(56px, 1fr));
-    overflow-x: auto;
-  }
-
-  .environment-strip {
-    grid-template-columns: 1fr;
-  }
-
-  .environment-strip .hazards {
-    grid-column: auto;
-  }
+import { useState } from "react";
+import { simulationActions } from "../data/actions";
+import { ProcedureModal } from "./ProcedureModal";
+import {
+  getObservation,
+  getActionDuration,
+  getPatientCondition,
+  measurementIsStale,
+} from "../game/simulationEngine";
+import type {
+  ActionCategory,
+  Difficulty,
+  ProcedureResolution,
+  SimulationAction,
+  SimulationScenario,
+  SimulationState,
+} from "../game/types";
+
+interface GameScreenProps {
+  scenario: SimulationScenario;
+  state: SimulationState;
+  difficulty: Difficulty;
+  caseNumber: number;
+  totalCases: number;
+  onAction: (action: SimulationAction, resolution?: ProcedureResolution) => void;
+  onWait: () => void;
+}
+
+const categories: ActionCategory[] = ["安全", "評估", "問診", "處置", "運送"];
+const findingKeys = ["appearance", "skin", "airway", "breathing", "injuries", "bleeding", "sampleHistory", "opqrst", "stroke"] as const;
+const findingLabels = {
+  appearance: "整體外觀",
+  skin: "膚色與皮膚",
+  airway: "呼吸道",
+  breathing: "呼吸觀察",
+  injuries: "傷處",
+  bleeding: "出血",
+  sampleHistory: "SAMPLE 病史",
+  opqrst: "OPQRST 症狀分析",
+  stroke: "神經學評估",
+};
+
+export function GameScreen({
+  scenario,
+  state,
+  difficulty,
+  caseNumber,
+  totalCases,
+  onAction,
+  onWait,
+}: GameScreenProps) {
+  const [activeCategory, setActiveCategory] = useState<ActionCategory>("安全");
+  const [procedureAction, setProcedureAction] = useState<SimulationAction | null>(null);
+  const [procedureSession, setProcedureSession] = useState(0);
+  const condition = getPatientCondition(state.physiology);
+  const actions = simulationActions.filter((item) => item.category === activeCategory);
+  const canResuscitate = state.status === "arrest";
+  const latestResult = state.log[0];
+
+  return (
+    <main className="sim-layout">
+      {procedureAction && (
+        <ProcedureModal
+          action={procedureAction}
+          key={`${procedureAction.id}-${procedureSession}`}
+          onClose={() => setProcedureAction(null)}
+          onComplete={(completedAction, resolution) => {
+            setProcedureAction(null);
+            onAction(completedAction, resolution);
+          }}
+          scenario={scenario}
+          state={state}
+        />
+      )}
+      {latestResult && (
+        <div
+          className={`result-toast ${latestResult.tone}`}
+          key={latestResult.id}
+          role="status"
+        >
+          <span>動作結果</span>
+          <strong>{latestResult.label}</strong>
+          <p>{latestResult.message}</p>
+        </div>
+      )}
+      <header className="mission-bar">
+        <div>
+          <span className="eyebrow">
+            CASE {caseNumber}/{totalCases} · {scenario.callSign}
+          </span>
+          <h1>{scenario.title}</h1>
+        </div>
+        <div className="mission-metrics">
+          <span>{formatTime(state.elapsed)}</span>
+          <span>{state.score} 分</span>
+        </div>
+      </header>
+
+      <section className="environment-strip panel">
+        <div><span>地點</span><strong>{scenario.environment.location}</strong></div>
+        <div><span>天氣</span><strong>{scenario.environment.weather}</strong></div>
+        <div><span>環境溫度</span><strong>{scenario.environment.ambientTemperature} °C</strong></div>
+        <div><span>時間</span><strong>{scenario.environment.timeOfDay}</strong></div>
+        <div className="hazards"><span>已知危害</span><strong>{scenario.environment.hazards.join(" · ")}</strong></div>
+      </section>
+
+      <section className="clinical-board panel">
+        <div className="patient-heading">
+          <div>
+            <span className="eyebrow">PATIENT STATUS</span>
+            <h2>{scenario.patient}，{scenario.age} 歲</h2>
+            <p>{scenario.chiefComplaint}</p>
+          </div>
+          <div className={`stability-orb ${condition >= 60 ? "stable" : condition >= 30 ? "warning" : "critical"}`}>
+            <strong>{condition}</strong>
+            <span>病況指標</span>
+          </div>
+        </div>
+
+        {canResuscitate && (
+          <div className="critical-alert">
+            病患已陷入極危急狀態。請重新確認呼吸與脈搏，並選擇適當復甦處置。
+          </div>
+        )}
+
+        <div className="monitor-grid">
+          <MonitorValue
+            label="意識 AVPU"
+            value={
+              state.completedActionIds.includes("check-response")
+                ? consciousnessLabel(state.physiology.consciousness)
+                : null
+            }
+            age={state.elapsed}
+            measuredAt={findLogTime(state, "check-response")}
+          />
+          <MonitorValue label="GCS" measurement={state.measurements.gcs} age={state.elapsed} />
+          <MonitorValue label="脈搏" measurement={state.measurements.pulse} age={state.elapsed} />
+          <MonitorValue label="呼吸" measurement={state.measurements.respiratoryRate} age={state.elapsed} />
+          <MonitorValue label="血壓" measurement={state.measurements.bloodPressure} age={state.elapsed} />
+          <MonitorValue label="SpO₂" measurement={state.measurements.spo2} age={state.elapsed} />
+          <MonitorValue label="體溫" measurement={state.measurements.temperature} age={state.elapsed} />
+          <MonitorValue label="血糖" measurement={state.measurements.glucose} age={state.elapsed} />
+        </div>
+
+        <div className="findings">
+          <h3>已取得的現場與病患資訊</h3>
+          {state.revealed.length === 0 ? (
+            <p className="locked-copy">尚未觀察或評估。數值不會自動顯示。</p>
+          ) : (
+            findingKeys
+              .filter((key) => state.revealed.includes(key))
+              .map((key) => (
+                <article key={key}>
+                  <span>{findingLabels[key]}</span>
+                  <p>{getObservation(scenario, state, key)}</p>
+                </article>
+              ))
+          )}
+        </div>
+      </section>
+
+      <section className="toolbox panel">
+        <div className="section-title">
+          <div>
+            <span className="eyebrow">FULL EMT TOOLBOX</span>
+            <h2>下一個動作</h2>
+          </div>
+          {difficulty.showHints && <span className="hint-chip">每個動作都會消耗時間</span>}
+        </div>
+        <div className="category-tabs" role="tablist" aria-label="動作分類">
+          {categories.map((category) => (
+            <button
+              className={activeCategory === category ? "active" : ""}
+              key={category}
+              onClick={() => setActiveCategory(category)}
+              role="tab"
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+        <button className="observe-time-button" onClick={onWait}>
+          暫不處置，觀察 30 秒病況變化
+        </button>
+        <div className="sim-action-list">
+          {actions.map((item) => {
+            const completed = !item.repeatable && state.completedActionIds.includes(item.id);
+            const duration = getActionDuration(scenario, item);
+            const unavailable =
+              state.status === "transported" ||
+              (item.id === "control-hazards" &&
+                !state.completedActionIds.includes("ppe-scene")) ||
+              (state.status === "arrest" &&
+                !["check-response", "check-breathing", "check-pulse", "cpr", "aed-analyze", "bvm", "oxygen"].includes(item.id));
+            return (
+              <button
+                className={completed ? "completed" : ""}
+                disabled={completed || unavailable}
+                key={item.id}
+                onClick={() => {
+                  if (requiresProcedure(item.id)) {
+                    setProcedureSession((session) => session + 1);
+                    setProcedureAction(item);
+                  } else {
+                    onAction(item);
+                  }
+                }}
+              >
+                <div>
+                  <strong>{completed ? "已執行" : item.label}</strong>
+                  <p>{item.description}</p>
+                </div>
+                <span>{duration} 秒</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <aside className="sim-log panel" aria-live="polite">
+        <span className="eyebrow">LIVE CONSEQUENCES</span>
+        <h2>病況與處置紀錄</h2>
+        {state.log.length === 0 ? (
+          <p className="locked-copy">派遣資訊不等於現場真相。先觀察，再決定。</p>
+        ) : (
+          <ol>
+            {state.log.map((entry) => (
+              <li className={entry.tone} key={entry.id}>
+                <div><strong>{entry.label}</strong><time>{formatTime(entry.elapsed)}</time></div>
+                <p>{entry.message}</p>
+              </li>
+            ))}
+          </ol>
+        )}
+      </aside>
+    </main>
+  );
+}
+
+function MonitorValue({
+  label,
+  measurement,
+  value,
+  age,
+  measuredAt,
+}: {
+  label: string;
+  measurement?: { value: string; measuredAt: number };
+  value?: string | null;
+  age: number;
+  measuredAt?: number;
+}) {
+  const time = measurement?.measuredAt ?? measuredAt;
+  const stale = time !== undefined && age - time >= 90;
+  return (
+    <div className={`monitor-value ${stale ? "stale" : ""}`}>
+      <span>{label}</span>
+      <strong>{measurement?.value ?? value ?? "未量測"}</strong>
+      <small>
+        {time === undefined ? "需評估／使用儀器" : `${formatTime(time)} 取得${stale ? " · 已過期" : ""}`}
+      </small>
+    </div>
+  );
+}
+
+function findLogTime(state: SimulationState, actionId: string) {
+  return state.log.find((entry) => entry.id.startsWith(actionId))?.elapsed;
+}
+
+function consciousnessLabel(value: number) {
+  return value >= 85 ? "A－清醒" : value >= 60 ? "V－對聲音" : value >= 25 ? "P－對疼痛" : "U－無反應";
+}
+
+function formatTime(seconds: number) {
+  return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+function requiresProcedure(actionId: string) {
+  return actionId.startsWith("transport-") || [
+    "gcs-assessment",
+    "oxygen",
+    "bvm",
+    "airway-management",
+    "direct-pressure",
+    "tourniquet",
+    "cpr",
+    "aed-analyze",
+  ].includes(actionId);
 }

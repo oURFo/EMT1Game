@@ -51,6 +51,7 @@ export function GameScreen({
 }: GameScreenProps) {
   const [activeCategory, setActiveCategory] = useState<ActionCategory>("安全");
   const [procedureAction, setProcedureAction] = useState<SimulationAction | null>(null);
+  const [procedureSession, setProcedureSession] = useState(0);
   const condition = getPatientCondition(state.physiology);
   const actions = simulationActions.filter((item) => item.category === activeCategory);
   const canResuscitate = state.status === "arrest";
@@ -61,6 +62,7 @@ export function GameScreen({
       {procedureAction && (
         <ProcedureModal
           action={procedureAction}
+          key={`${procedureAction.id}-${procedureSession}`}
           onClose={() => setProcedureAction(null)}
           onComplete={(completedAction, resolution) => {
             setProcedureAction(null);
@@ -196,11 +198,14 @@ export function GameScreen({
                 className={completed ? "completed" : ""}
                 disabled={completed || unavailable}
                 key={item.id}
-                onClick={() =>
-                  requiresProcedure(item.id)
-                    ? setProcedureAction(item)
-                    : onAction(item)
-                }
+                onClick={() => {
+                  if (requiresProcedure(item.id)) {
+                    setProcedureSession((session) => session + 1);
+                    setProcedureAction(item);
+                  } else {
+                    onAction(item);
+                  }
+                }}
               >
                 <div>
                   <strong>{completed ? "已執行" : item.label}</strong>
