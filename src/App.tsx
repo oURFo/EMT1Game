@@ -4,6 +4,7 @@ import { simulationScenarios } from "./data/simulationScenarios";
 import { DIFFICULTIES } from "./game/engine";
 import {
   advanceWithoutAction,
+  assessCriticalCase,
   createSimulationState,
   getGcsDisplay,
   performSimulationAction,
@@ -42,6 +43,10 @@ export default function App() {
   const difficulty = DIFFICULTIES.standard;
   const currentScenario = deck[caseIndex];
   const currentResult = results[results.length - 1];
+  const criticalAssessment =
+    currentScenario && caseState
+      ? assessCriticalCase(currentScenario, caseState)
+      : null;
 
   useEffect(() => {
     localStorage.setItem("emt-golden-rescue", JSON.stringify(progress));
@@ -225,7 +230,26 @@ export default function App() {
             <div className="comparison-grid">
               <article>
                 <span className="comparison-label">系統傷病患資料</span>
-                <h3>實際危急因子</h3>
+                <div className={`critical-classification classification-${criticalAssessment?.classification === "未達危急門檻" ? "normal" : "urgent"}`}>
+                  <span>救護員危急個案判定</span>
+                  <strong>{criticalAssessment?.classification}</strong>
+                </div>
+                <h3>符合的判定標準</h3>
+                {criticalAssessment?.criteria.length ? (
+                  <div className="critical-criteria-list">
+                    {criticalAssessment.criteria.map((criterion) => (
+                      <div key={`${criterion.category}-${criterion.standard}`}>
+                        <span>{criterion.category}</span>
+                        <strong>{criterion.standard}</strong>
+                        <p>{criterion.evidence}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p>病程中未出現跨越危急個案門檻的客觀數值。</p>
+                )}
+                <h3>為什麼需要送醫</h3>
+                <p className="urgent-reason">{criticalAssessment?.urgentReason}</p>
                 <ul>
                   {currentScenario.criticalFactors.map((factor) => (
                     <li key={factor}>{factor}</li>

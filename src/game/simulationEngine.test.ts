@@ -4,6 +4,7 @@ import { simulationScenarios } from "../data/simulationScenarios";
 import { DIFFICULTIES } from "./engine";
 import {
   advanceWithoutAction,
+  assessCriticalCase,
   createSimulationState,
   getActionDuration,
   measurementIsStale,
@@ -182,5 +183,30 @@ describe("dynamic patient simulation", () => {
 
     expect(result.status).toBe("transported");
     expect(result.playerReport.transportReason).toContain("休克");
+  });
+
+  it("explains matched EMT critical-case thresholds", () => {
+    const scenario = simulationScenarios.find(
+      (item) => item.id === "breathing-asthma",
+    )!;
+    const assessment = assessCriticalCase(
+      scenario,
+      createSimulationState(scenario),
+    );
+
+    expect(assessment.classification).toBe("危急個案");
+    expect(assessment.criteria.some((item) => item.standard.includes("呼吸頻率"))).toBe(true);
+    expect(assessment.criteria.some((item) => item.standard.includes("SpO₂"))).toBe(true);
+    expect(assessment.urgentReason).toContain("儘速");
+  });
+
+  it("classifies cardiac arrest as prehospital level one", () => {
+    const scenario = simulationScenarios.find(
+      (item) => item.id === "arrest-gym",
+    )!;
+    expect(
+      assessCriticalCase(scenario, createSimulationState(scenario))
+        .classification,
+    ).toBe("一級危急");
   });
 });

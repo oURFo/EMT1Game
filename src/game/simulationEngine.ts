@@ -344,6 +344,168 @@ export function getGcsDisplay(consciousness: number): string {
   return `E${gcs.eye} V${gcs.verbal} M${gcs.motor}＝${gcs.eye + gcs.verbal + gcs.motor}`;
 }
 
+export interface CriticalAssessment {
+  classification: "一級危急" | "危急個案" | "未達危急門檻";
+  criteria: {
+    category: "生命徵象" | "外傷部位／機轉" | "特殊情況";
+    standard: string;
+    evidence: string;
+  }[];
+  urgentReason: string;
+}
+
+export function assessCriticalCase(
+  scenario: SimulationScenario,
+  state: SimulationState,
+): CriticalAssessment {
+  const initial = scenario.initialPhysiology;
+  const current = state.physiology;
+  const initialGcs = gcsComponents(initial.consciousness);
+  const currentGcs = gcsComponents(current.consciousness);
+  const initialGcsTotal = initialGcs.eye + initialGcs.verbal + initialGcs.motor;
+  const currentGcsTotal = currentGcs.eye + currentGcs.verbal + currentGcs.motor;
+  const criteria: CriticalAssessment["criteria"] = [];
+  const add = (
+    category: CriticalAssessment["criteria"][number]["category"],
+    standard: string,
+    evidence: string,
+  ) => criteria.push({ category, standard, evidence });
+  const course = (label: string, before: number, after: number, unit: string) =>
+    `${label}：初始 ${Math.round(before)}${unit}，送醫時 ${Math.round(after)}${unit}`;
+
+  if (initialGcsTotal < 14 || currentGcsTotal < 14) {
+    add(
+      "生命徵象",
+      "急性意識不清：GCS＜14",
+      `GCS：初始 ${initialGcsTotal} 分，送醫時 ${currentGcsTotal} 分`,
+    );
+  }
+  if (
+    initial.respiratoryRate >= 30 ||
+    initial.respiratoryRate < 10 ||
+    current.respiratoryRate >= 30 ||
+    current.respiratoryRate < 10
+  ) {
+    add(
+      "生命徵象",
+      "呼吸頻率：≧30 或＜10 次／分鐘",
+      course("呼吸", initial.respiratoryRate, current.respiratoryRate, " 次／分"),
+    );
+  }
+  if (
+    initial.pulse > 150 ||
+    initial.pulse < 50 ||
+    current.pulse > 150 ||
+    current.pulse < 50
+  ) {
+    add(
+      "生命徵象",
+      "脈搏：＞150 或＜50 次／分鐘",
+      course("脈搏", initial.pulse, current.pulse, " 次／分"),
+    );
+  }
+  if (
+    initial.systolic > 220 ||
+    initial.systolic < 90 ||
+    current.systolic > 220 ||
+    current.systolic < 90
+  ) {
+    add(
+      "生命徵象",
+      "收縮壓：＞220 或＜90 mmHg",
+      course("收縮壓", initial.systolic, current.systolic, " mmHg"),
+    );
+  }
+  if (
+    initial.bodyTemperature > 41 ||
+    initial.bodyTemperature < 32 ||
+    current.bodyTemperature > 41 ||
+    current.bodyTemperature < 32
+  ) {
+    add(
+      "生命徵象",
+      "核心體溫：＞41°C 或＜32°C",
+      `體溫：初始 ${initial.bodyTemperature.toFixed(1)}°C，送醫時 ${current.bodyTemperature.toFixed(1)}°C`,
+    );
+  }
+  if (initial.spo2 < 90 || current.spo2 < 90) {
+    add(
+      "生命徵象",
+      "血氧濃度：SpO₂＜90%",
+      course("SpO₂", initial.spo2, current.spo2, "%"),
+    );
+  }
+  if (initial.glucose < 60 || current.glucose < 60) {
+    add(
+      "特殊情況",
+      "血糖值＜60 mg/dL",
+      course("血糖", initial.glucose, current.glucose, " mg/dL"),
+    );
+  }
+
+  const searchable = [
+    scenario.id,
+    scenario.title,
+    scenario.chiefComplaint,
+    scenario.observations.injuries,
+    scenario.observations.airway,
+    ...scenario.criticalFactors,
+  ].join(" ");
+  if (scenario.transportDestination === "transport-stroke") {
+    add("特殊情況", "疑似急性腦中風", scenario.observations.stroke ?? "出現急性局部神經學異常。");
+  }
+  if (scenario.id === "chest-pain") {
+    add("特殊情況", "疑似缺血性胸痛發作", scenario.observations.opqrst ?? scenario.chiefComplaint);
+  }
+  if (/(opioid|carbon-monoxide)/.test(scenario.id)) {
+    add("特殊情況", "中毒可能危及生命", scenario.chiefComplaint);
+  }
+  if (scenario.id.startsWith("drowning-")) {
+    add("特殊情況", "溺水", scenario.chiefComplaint);
+  }
+  if (scenario.id.startsWith("electric-")) {
+    add("外傷部位／機轉", "重大電擊傷", scenario.observations.injuries ?? scenario.chiefComplaint);
+  }
+  if (/吸入性|鼻毛焦黑|口鼻煙灰/.test(searchable)) {
+    add("外傷部位／機轉", "疑似吸入性灼傷", scenario.observations.airway ?? scenario.chiefComplaint);
+  }
+  if (
+    scenario.age <= 8 &&
+    (initialGcsTotal < 14 ||
+      initial.spo2 < 90 ||
+      initial.respiratoryRate >= 30)
+  ) {
+    add("特殊情況", "小兒評估危急", "兒童外觀、呼吸或循環呈現異常，具有快速失代償風險。");
+  }
+
+  const tierOne =
+    initial.pulse <= 0 ||
+    current.pulse <= 0 ||
+    initial.respiratoryRate <= 0 ||
+    current.respiratoryRate <= 0 ||
+    Math.min(initialGcsTotal, currentGcsTotal) <= 8 ||
+    Math.min(initial.oxygenation, current.oxygenation) < 30 ||
+    Math.min(initial.perfusion, current.perfusion) < 30 ||
+    Math.min(initial.systolic, current.systolic) < 70 ||
+    initial.bodyTemperature > 41 ||
+    initial.bodyTemperature < 32 ||
+    current.bodyTemperature > 41 ||
+    current.bodyTemperature < 32;
+  const classification = tierOne
+    ? "一級危急"
+    : criteria.length > 0
+      ? "危急個案"
+      : "未達危急門檻";
+  const urgentReason =
+    classification === "一級危急"
+      ? "病患可能正處於呼吸／循環衰竭、重度意識障礙或休克，需立即處置、持續監測並儘速送往就近適當醫療機構。"
+      : classification === "危急個案"
+        ? "已符合救護員危急個案判定條件，病況可能快速惡化；應縮短現場時間、途中密切再評估並儘速後送。"
+        : "目前量測未跨越危急個案數值門檻，但仍需依症狀、病史及受傷機轉送醫進一步檢查；不應把「未達門檻」解讀為不需送醫。";
+
+  return { classification, criteria, urgentReason };
+}
+
 export function getObservation(
   scenario: SimulationScenario,
   state: SimulationState,

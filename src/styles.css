@@ -1164,6 +1164,73 @@ button:focus-visible {
   letter-spacing: 0.1em;
 }
 
+.critical-classification {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+}
+
+.critical-classification span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.critical-classification strong {
+  font-size: 0.95rem;
+}
+
+.classification-urgent {
+  border-color: rgba(255, 102, 59, 0.55);
+  background: rgba(255, 102, 59, 0.08);
+}
+
+.classification-urgent strong {
+  color: var(--orange-light);
+}
+
+.classification-normal strong {
+  color: var(--mint);
+}
+
+.critical-criteria-list {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.critical-criteria-list > div {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--orange);
+  background: rgba(255, 102, 59, 0.04);
+}
+
+.critical-criteria-list span {
+  color: var(--orange-light);
+  font-size: 0.66rem;
+}
+
+.critical-criteria-list strong {
+  font-size: 0.78rem;
+}
+
+.critical-criteria-list p {
+  color: #aebfbd;
+  font-size: 0.74rem;
+}
+
+.urgent-reason {
+  margin-bottom: 10px !important;
+  padding: 10px 12px !important;
+  background: rgba(88, 230, 194, 0.055);
+  border: 1px solid var(--line);
+}
+
 .comparison-grid h3 {
   margin: 8px 0 12px;
   font-size: 0.95rem;
