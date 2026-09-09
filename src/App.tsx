@@ -401,7 +401,7 @@ export default function App() {
                   {caseState?.playerReport.transportReason ||
                     "玩家未填寫送醫原因"}
                 </p>
-                <h3>勾選的送醫依據</h3>
+                <h3>勾選的生理監控依據</h3>
                 {selectedIndicators.length ? (
                   <ul className="transport-indicator-review">
                     {selectedIndicators.map((item) => (

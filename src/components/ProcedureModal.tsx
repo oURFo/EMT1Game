@@ -496,36 +496,31 @@ function TransportProcedure({
       <TransportReferencePanel scenario={scenario} state={state} />
       <div className="transport-entry">
         <p className="procedure-instruction">
-          你即將把「{scenario.patient}」送往「{action.label.replace("送往", "")}」。請勾選支持送醫判斷的客觀資料，並撰寫送醫原因。
+          你即將把「{scenario.patient}」送往「{action.label.replace("送往", "")}」。請勾選已量測的生理監控數值，並自行撰寫危急送醫原因。
         </p>
         {indicatorOptions.length > 0 ? (
           <fieldset className="transport-indicator-picker">
-            <legend>勾選支持危急送醫的客觀資料</legend>
-            {(["生命徵象", "評估發現", "危急標準"] as const).map((group) => {
-              const groupItems = indicatorOptions.filter((item) => item.group === group);
-              if (!groupItems.length) return null;
-              return (
-                <div className="transport-indicator-group" key={group}>
-                  <h4>{group}</h4>
-                  {groupItems.map((item) => (
-                    <label className="transport-indicator-option" key={item.id}>
-                      <input
-                        checked={selectedIndicators.includes(item.id)}
-                        onChange={() => toggleIndicator(item.id)}
-                        type="checkbox"
-                      />
-                      <span>
-                        <strong>{item.label}</strong>
-                        <small>{item.detail}</small>
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              );
-            })}
+            <legend>勾選作為送醫依據的生理監控數值</legend>
+            <div className="transport-indicator-group">
+              {indicatorOptions.map((item) => (
+                <label className="transport-indicator-option" key={item.id}>
+                  <input
+                    checked={selectedIndicators.includes(item.id)}
+                    onChange={() => toggleIndicator(item.id)}
+                    type="checkbox"
+                  />
+                  <span>
+                    <strong>{item.label}</strong>
+                    <small>{item.detail}</small>
+                  </span>
+                </label>
+              ))}
+            </div>
           </fieldset>
         ) : (
-          <p className="locked-copy">尚未取得可勾選的量測或評估資料，請先完成評估後再送醫。</p>
+          <p className="locked-copy">
+            尚未量測脈搏、呼吸、血壓、SpO₂、血糖或 GCS，請先使用儀器或完成評估後再送醫。
+          </p>
         )}
         <label className="transport-reason-field">
           <span>送醫原因（危急個案）</span>
