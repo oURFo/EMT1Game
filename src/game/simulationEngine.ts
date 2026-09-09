@@ -9,19 +9,36 @@ import type {
   SimulationState,
 } from "./types";
 
+/** Actions allowed while the patient is in prehospital cardiac arrest / extremis. */
+export const RESUSCITATION_ACTION_IDS = [
+  "check-response",
+  "check-breathing",
+  "check-pulse",
+  "check-airway",
+  "oxygen",
+  "bvm",
+  "suction",
+  "opa",
+  "airway-management",
+  "aed-ready",
+  "cpr",
+  "aed-analyze",
+] as const;
+
 export function createSimulationState(
   scenario: SimulationScenario,
 ): SimulationState {
+  const physiology = { ...scenario.initialPhysiology };
   return {
     elapsed: 0,
-    physiology: { ...scenario.initialPhysiology },
+    physiology,
     revealed: [],
     measurements: {},
     completedActionIds: [],
     activeTreatments: [],
     score: 0,
     log: [],
-    status: "active",
+    status: getPatientCondition(physiology) <= 8 ? "arrest" : "active",
     playerReport: {},
   };
 }
@@ -33,12 +50,29 @@ export function performSimulationAction(
   difficulty: Difficulty,
   resolution?: ProcedureResolution,
 ): SimulationState {
-  const resuscitationActions = ["check-response", "check-breathing", "check-pulse", "cpr", "aed-analyze", "bvm", "oxygen"];
-  if (
-    state.status === "transported" ||
-    (state.status === "arrest" && !resuscitationActions.includes(action.id))
-  ) {
+  if (state.status === "transported") {
     return state;
+  }
+  if (
+    state.status === "arrest" &&
+    !RESUSCITATION_ACTION_IDS.includes(
+      action.id as (typeof RESUSCITATION_ACTION_IDS)[number],
+    )
+  ) {
+    return {
+      ...state,
+      log: [
+        {
+          id: `blocked-${action.id}-${state.elapsed}`,
+          label: action.label,
+          message:
+            "病患已陷入極危急狀態，請先完成呼吸／脈搏再評估，並從下方復甦處置清單選擇適當處置。",
+          elapsed: state.elapsed,
+          tone: "danger",
+        },
+        ...state.log,
+      ],
+    };
   }
   if (!action.repeatable && state.completedActionIds.includes(action.id)) return state;
 

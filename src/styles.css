@@ -908,6 +908,21 @@ button:focus-visible {
   padding: 24px;
 }
 
+.resuscitation-hint {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  color: #ffe8df;
+  border: 1px solid rgba(255, 100, 51, 0.25);
+  background: rgba(255, 100, 51, 0.06);
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+.sim-action-list.resuscitation-mode {
+  border: 1px solid rgba(255, 100, 51, 0.35);
+  background: rgba(255, 100, 51, 0.04);
+}
+
 .critical-alert {
   margin: 20px 0;
   padding: 14px 16px;

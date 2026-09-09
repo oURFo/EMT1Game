@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { simulationActions } from "../data/actions";
+import { useEffect, useState } from "react";
+import { actionById, simulationActions } from "../data/actions";
 import { ProcedureModal } from "./ProcedureModal";
 import {
   getObservation,
   getActionDuration,
   getPatientCondition,
   measurementIsStale,
+  RESUSCITATION_ACTION_IDS,
 } from "../game/simulationEngine";
 import type {
   ActionCategory,
@@ -53,9 +54,17 @@ export function GameScreen({
   const [procedureAction, setProcedureAction] = useState<SimulationAction | null>(null);
   const [procedureSession, setProcedureSession] = useState(0);
   const condition = getPatientCondition(state.physiology);
-  const actions = simulationActions.filter((item) => item.category === activeCategory);
-  const canResuscitate = state.status === "arrest";
+  const resuscitationMode = state.status === "arrest";
+  const actions = resuscitationMode
+    ? RESUSCITATION_ACTION_IDS.map((id) => actionById[id]).filter(Boolean)
+    : simulationActions.filter((item) => item.category === activeCategory);
   const latestResult = state.log[0];
+
+  useEffect(() => {
+    if (resuscitationMode) {
+      setActiveCategory("處置");
+    }
+  }, [resuscitationMode]);
 
   return (
     <main className="sim-layout">
@@ -117,9 +126,9 @@ export function GameScreen({
           </div>
         </div>
 
-        {canResuscitate && (
+        {resuscitationMode && (
           <div className="critical-alert">
-            病患已陷入極危急狀態。請重新確認呼吸與脈搏，並選擇適當復甦處置。
+            病患已陷入極危急狀態。請重新確認呼吸與脈搏，並從下方「復甦處置」清單選擇適當處置。
           </div>
         )}
 
@@ -163,36 +172,44 @@ export function GameScreen({
       <section className="toolbox panel">
         <div className="section-title">
           <div>
-            <span className="eyebrow">FULL EMT TOOLBOX</span>
-            <h2>下一個動作</h2>
+            <span className="eyebrow">
+              {resuscitationMode ? "CARDIAC ARREST PROTOCOL" : "FULL EMT TOOLBOX"}
+            </span>
+            <h2>{resuscitationMode ? "復甦處置" : "下一個動作"}</h2>
           </div>
-          {difficulty.showHints && <span className="hint-chip">每個動作都會消耗時間</span>}
+          {difficulty.showHints && !resuscitationMode && (
+            <span className="hint-chip">每個動作都會消耗時間</span>
+          )}
         </div>
-        <div className="category-tabs" role="tablist" aria-label="動作分類">
-          {categories.map((category) => (
-            <button
-              className={activeCategory === category ? "active" : ""}
-              key={category}
-              onClick={() => setActiveCategory(category)}
-              role="tab"
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-        <button className="observe-time-button" onClick={onWait}>
-          暫不處置，觀察 30 秒病況變化
-        </button>
-        <div className="sim-action-list">
+        {!resuscitationMode && (
+          <div className="category-tabs" role="tablist" aria-label="動作分類">
+            {categories.map((category) => (
+              <button
+                className={activeCategory === category ? "active" : ""}
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                role="tab"
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+        )}
+        {!resuscitationMode && (
+          <button className="observe-time-button" onClick={onWait}>
+            暫不處置，觀察 30 秒病況變化
+          </button>
+        )}
+        {resuscitationMode && (
+          <p className="resuscitation-hint">
+            危急模式下僅開放再評估與復甦相關處置。完成 CPR／AED 並恢復循環後，即可繼續一般評估與送醫。
+          </p>
+        )}
+        <div className={`sim-action-list${resuscitationMode ? " resuscitation-mode" : ""}`}>
           {actions.map((item) => {
             const completed = !item.repeatable && state.completedActionIds.includes(item.id);
             const duration = getActionDuration(scenario, item);
-            const unavailable =
-              state.status === "transported" ||
-              (item.id === "control-hazards" &&
-                !state.completedActionIds.includes("ppe-scene")) ||
-              (state.status === "arrest" &&
-                !["check-response", "check-breathing", "check-pulse", "cpr", "aed-analyze", "bvm", "oxygen"].includes(item.id));
+            const unavailable = state.status === "transported";
             return (
               <button
                 className={completed ? "completed" : ""}

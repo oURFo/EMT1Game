@@ -9,6 +9,7 @@ import {
   getActionDuration,
   measurementIsStale,
   performSimulationAction,
+  RESUSCITATION_ACTION_IDS,
 } from "./simulationEngine";
 
 describe("dynamic patient simulation", () => {
@@ -239,5 +240,51 @@ describe("dynamic patient simulation", () => {
       assessCriticalCase(scenario, createSimulationState(scenario))
         .classification,
     ).toBe("一級危急");
+  });
+
+  it("starts cardiac arrest scenarios in arrest mode with resuscitation actions available", () => {
+    const scenario = simulationScenarios.find(
+      (item) => item.id === "arrest-gym",
+    )!;
+    const initial = createSimulationState(scenario);
+    expect(initial.status).toBe("arrest");
+    expect(RESUSCITATION_ACTION_IDS).toContain("cpr");
+    expect(RESUSCITATION_ACTION_IDS).toContain("check-pulse");
+  });
+
+  it("recovers from arrest after successful CPR", () => {
+    const scenario = simulationScenarios.find(
+      (item) => item.id === "arrest-gym",
+    )!;
+    const initial = createSimulationState(scenario);
+    const afterCpr = performSimulationAction(
+      scenario,
+      initial,
+      actionById.cpr,
+      DIFFICULTIES.standard,
+      {
+        duration: 150,
+        scoreModifier: 32,
+        physiologyDelta: { perfusion: 18, oxygenation: 8 },
+        message: "CPR 完成。",
+      },
+    );
+    expect(afterCpr.status).toBe("active");
+    expect(afterCpr.physiology.perfusion).toBeGreaterThan(10);
+  });
+
+  it("explains why non-resuscitation actions are blocked during arrest", () => {
+    const scenario = simulationScenarios.find(
+      (item) => item.id === "arrest-gym",
+    )!;
+    const initial = createSimulationState(scenario);
+    const blocked = performSimulationAction(
+      scenario,
+      initial,
+      actionById["transport-local"],
+      DIFFICULTIES.standard,
+    );
+    expect(blocked.status).toBe("arrest");
+    expect(blocked.log[0].message).toContain("復甦處置");
   });
 });
