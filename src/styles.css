@@ -1706,6 +1706,107 @@ button:focus-visible {
   gap: 16px;
 }
 
+.transport-indicator-picker {
+  border: 1px solid var(--line);
+  padding: 14px;
+  margin: 0;
+}
+
+.transport-indicator-picker legend {
+  padding: 0 6px;
+  color: var(--mint);
+  font-weight: 700;
+}
+
+.transport-indicator-group h4 {
+  margin: 12px 0 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.transport-indicator-option {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+
+.transport-indicator-option strong {
+  display: block;
+}
+
+.transport-indicator-option small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.tier-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.tier-picker button {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  text-align: left;
+  border: 1px solid var(--line);
+  background: #07191d;
+  color: var(--ink);
+}
+
+.tier-picker button.active {
+  border-color: var(--mint);
+  background: rgba(88, 230, 194, 0.08);
+}
+
+.tier-picker button small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.debrief-section,
+.debrief-alert {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.safety-alert {
+  color: #ffd5c9;
+  border: 1px solid rgba(255, 100, 51, 0.35);
+  background: rgba(255, 100, 51, 0.08);
+  padding: 16px;
+}
+
+.safety-penalty {
+  color: #ffb199;
+}
+
+.suggestion-list,
+.missed-actions,
+.transport-indicator-review {
+  margin: 0;
+  padding-left: 18px;
+  line-height: 1.65;
+}
+
+.transport-indicator-review li {
+  margin-bottom: 10px;
+}
+
+.transport-indicator-review span {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
 .transport-reason-field {
   display: grid;
   gap: 8px;
@@ -1748,6 +1849,22 @@ button:focus-visible {
   }
 
   .transport-procedure-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sim-action-list.resuscitation-mode {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    padding-bottom: 8px;
+    background: linear-gradient(180deg, rgba(10, 32, 36, 0) 0%, #0a2024 18%);
+  }
+
+  .sim-action-list.resuscitation-mode button {
+    min-height: 56px;
+  }
+
+  .tier-picker {
     grid-template-columns: 1fr;
   }
 

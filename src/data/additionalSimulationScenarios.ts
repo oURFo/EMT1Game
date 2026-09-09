@@ -1,28 +1,9 @@
 import type { Physiology, SimulationScenario } from "../game/types";
-
-type ProfileId =
-  | "anaphylaxis"
-  | "copd"
-  | "pulmonary-edema"
-  | "airway-obstruction"
-  | "opioid"
-  | "seizure"
-  | "syncope"
-  | "head-trauma"
-  | "fracture"
-  | "burn"
-  | "hypothermia"
-  | "drowning"
-  | "cardiac-arrest"
-  | "gi-bleed"
-  | "hyperglycemia"
-  | "carbon-monoxide"
-  | "pediatric-fever"
-  | "pregnancy"
-  | "sepsis"
-  | "electrical"
-  | "chest-trauma"
-  | "elderly-fall";
+import {
+  PROFILE_SAMPLE,
+  PROFILE_TIER,
+  type ProfileId,
+} from "./profileContent";
 
 type Seed = [
   id: string,
@@ -270,7 +251,7 @@ const profiles: Record<ProfileId, ClinicalProfile> = {
     airway: "無法自行維持呼吸道，可能有舌根後墜。",
     breathing: "無正常呼吸，僅可能有瀕死喘息。",
     opqrst: "O：目擊者稱突然倒地；P：無；Q：無法描述；R：無；S：心跳停止；T：倒地時間需立即確認。",
-    recommended: ["aed-ready", "airway-management", "opa", "bvm", "cpr", "aed-analyze", "transport-critical"],
+    recommended: ["aed-ready", "airway-management", "opa", "bvm", "cpr", "transport-critical"],
     dangerous: ["oral-glucose", "upright"],
     destination: "transport-critical",
     factors: ["無反應", "無正常呼吸與循環徵象", "需立即高品質 CPR 與 AED"],
@@ -483,7 +464,46 @@ const defaultPhysiology: Physiology = {
   consciousness: 95,
 };
 
-export const additionalSimulationScenarios: SimulationScenario[] = seeds.map(
+function normalizeActionIds(ids: string[]) {
+  return [
+    ...new Set(
+      ids.map((id) =>
+        id === "direct-pressure" || id === "tourniquet"
+          ? "bleeding-control"
+          : id,
+      ),
+    ),
+  ];
+}
+
+function expandSeeds(base: Seed[], target: number): Seed[] {
+  const expanded = [...base];
+  let variant = 1;
+  while (expanded.length < target) {
+    const source = base[expanded.length % base.length];
+    expanded.push([
+      `${source[0]}-v${variant}`,
+      `${source[1]}（現場變體 ${variant}）`,
+      source[2],
+      source[3],
+      source[4],
+      source[5],
+      source[6],
+      `${source[7]} · 變體 ${variant}`,
+      source[8],
+      source[9],
+      source[10],
+      `${source[11]} · 路徑 ${variant}`,
+      [...source[12], `現場變體 ${variant}`],
+    ]);
+    variant += 1;
+  }
+  return expanded.slice(0, target);
+}
+
+const expandedSeeds = expandSeeds(seeds, 144);
+
+export const additionalSimulationScenarios: SimulationScenario[] = expandedSeeds.map(
   ([
     id,
     title,
@@ -508,6 +528,7 @@ export const additionalSimulationScenarios: SimulationScenario[] = seeds.map(
       patient,
       age,
       chiefComplaint,
+      caseTier: PROFILE_TIER[profileId],
       environment: {
         location,
         weather,
@@ -525,10 +546,13 @@ export const additionalSimulationScenarios: SimulationScenario[] = seeds.map(
         bleeding: profile.bleeding,
         airway: profile.airway,
         breathing: profile.breathing,
-        sampleHistory: `S：${chiefComplaint}；A：需向病患或家屬確認；M：需確認固定及近期用藥；P：需確認相關病史；L：需確認最後進食；E：${event}。`,
+        sampleHistory: PROFILE_SAMPLE[profileId],
         opqrst: profile.opqrst,
       },
-      recommendedActionIds: [...new Set([...baseAssessment, ...profile.recommended])],
+      recommendedActionIds: normalizeActionIds([
+        ...baseAssessment,
+        ...profile.recommended,
+      ]),
       dangerousActionIds: profile.dangerous,
       transportDestination: profile.destination,
       criticalFactors: profile.factors,

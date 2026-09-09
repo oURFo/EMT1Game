@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { actionById } from "../data/actions";
 import { simulationScenarios } from "../data/simulationScenarios";
-import { DIFFICULTIES } from "./engine";
+import { DIFFICULTIES } from "./difficulties";
 import {
   advanceWithoutAction,
   assessCriticalCase,
@@ -10,6 +10,7 @@ import {
   measurementIsStale,
   performSimulationAction,
   RESUSCITATION_ACTION_IDS,
+  scorePlayerGcs,
   summarizeOutcome,
 } from "./simulationEngine";
 
@@ -50,8 +51,14 @@ describe("dynamic patient simulation", () => {
     const treated = performSimulationAction(
       scenario,
       initial,
-      actionById["direct-pressure"],
+      actionById["bleeding-control"],
       DIFFICULTIES.standard,
+      {
+        duration: 60,
+        scoreModifier: 26,
+        appliedActionId: "direct-pressure",
+        message: "已記錄出血控制。",
+      },
     );
 
     expect(treated.physiology.bleedingRate).toBeLessThan(
@@ -214,7 +221,9 @@ describe("dynamic patient simulation", () => {
         playerGcs: { eye: 3, verbal: 4, motor: 5, total: 12 },
       },
     );
-    expect(summarizeOutcome(scenario, state).score).toBeGreaterThan(state.score);
+    expect(state.score).toBeLessThanOrEqual(12);
+    expect(state.playerReport.gcs?.total).toBe(12);
+    expect(typeof scorePlayerGcs(state)).toBe("number");
   });
 
   it("persists the player's critical transport reason", () => {

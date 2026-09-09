@@ -3,9 +3,17 @@ import { actionById, simulationActions } from "./actions";
 import { simulationScenarios } from "./simulationScenarios";
 
 describe("simulation content", () => {
-  it("ships fifty distinct dynamic cases", () => {
-    expect(simulationScenarios).toHaveLength(50);
-    expect(new Set(simulationScenarios.map((item) => item.id)).size).toBe(50);
+  it("ships one hundred fifty distinct dynamic cases", () => {
+    expect(simulationScenarios).toHaveLength(150);
+    expect(new Set(simulationScenarios.map((item) => item.id)).size).toBe(150);
+  });
+
+  it("assigns a tier to every case", () => {
+    expect(
+      simulationScenarios.every((item) =>
+        ["intro", "intermediate", "advanced"].includes(item.caseTier),
+      ),
+    ).toBe(true);
   });
 
   it("offers assessment, instruments, treatments and destinations", () => {

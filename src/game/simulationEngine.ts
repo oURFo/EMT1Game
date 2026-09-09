@@ -22,8 +22,17 @@ export const RESUSCITATION_ACTION_IDS = [
   "airway-management",
   "aed-ready",
   "cpr",
-  "aed-analyze",
+  "declare-death",
 ] as const;
+
+const DEFERRED_PROCEDURE_ACTIONS = new Set([
+  "gcs-assessment",
+  "oxygen",
+  "bvm",
+  "cpr",
+  "airway-management",
+  "bleeding-control",
+]);
 
 export function createSimulationState(
   scenario: SimulationScenario,
@@ -39,6 +48,7 @@ export function createSimulationState(
     score: 0,
     log: [],
     status: getPatientCondition(physiology) <= 8 ? "arrest" : "active",
+    resuscitationFailures: 0,
     playerReport: {},
   };
 }
@@ -50,8 +60,28 @@ export function performSimulationAction(
   difficulty: Difficulty,
   resolution?: ProcedureResolution,
 ): SimulationState {
-  if (state.status === "transported") {
+  if (state.status === "transported" || state.status === "dead") {
     return state;
+  }
+  if (action.id === "declare-death") {
+    if (state.resuscitationFailures < 3) return state;
+    const duration = getActionDuration(scenario, action);
+    return {
+      ...state,
+      elapsed: state.elapsed + duration,
+      status: "dead",
+      log: [
+        {
+          id: `declare-death-${state.elapsed}`,
+          label: action.label,
+          message:
+            "已依程序宣告現場死亡，結束現場處置並進入結案解析。",
+          elapsed: state.elapsed + duration,
+          tone: "neutral",
+        },
+        ...state.log,
+      ],
+    };
   }
   if (
     state.status === "arrest" &&
@@ -85,7 +115,8 @@ export function performSimulationAction(
     difficulty,
   );
   let scoreDelta = scenario.recommendedActionIds.includes(action.id) ? 12 : 0;
-  scoreDelta += resolution?.scoreModifier ?? 0;
+  const deferProcedureFeedback = DEFERRED_PROCEDURE_ACTIONS.has(action.id);
+  scoreDelta += deferProcedureFeedback ? 0 : resolution?.scoreModifier ?? 0;
   let tone: "good" | "neutral" | "danger" = scoreDelta > 0 ? "good" : "neutral";
   let message = action.description;
   const activeTreatments = [...state.activeTreatments];
@@ -124,7 +155,11 @@ export function performSimulationAction(
     message = `${message} 此選擇使目前病況惡化。`;
   }
 
-  const treatment = applyTreatment(action.id, physiology, scenario);
+  const treatmentActionId =
+    action.id === "bleeding-control" && resolution?.appliedActionId
+      ? resolution.appliedActionId
+      : action.id;
+  const treatment = applyTreatment(treatmentActionId, physiology, scenario);
   physiology = treatment.physiology;
   if (resolution?.physiologyDelta) {
     physiology = normalizePhysiology(
@@ -141,8 +176,18 @@ export function performSimulationAction(
     scoreDelta -= 18;
     tone = "danger";
     message = treatment.warning;
-  } else if (action.kind === "treatment" && !activeTreatments.includes(action.id)) {
-    activeTreatments.push(action.id);
+  } else if (
+    action.kind === "treatment" &&
+    treatmentActionId !== "bleeding-control" &&
+    !activeTreatments.includes(treatmentActionId)
+  ) {
+    activeTreatments.push(treatmentActionId);
+  } else if (
+    action.id === "bleeding-control" &&
+    resolution?.appliedActionId &&
+    !activeTreatments.includes(resolution.appliedActionId)
+  ) {
+    activeTreatments.push(resolution.appliedActionId);
   }
 
   const revealed = [...new Set([...state.revealed, ...(action.reveals ?? [])])];
@@ -174,7 +219,7 @@ export function performSimulationAction(
   }
   if (resolution) {
     message = resolution.message;
-    if (action.id === "gcs-assessment") {
+    if (deferProcedureFeedback || action.id === "gcs-assessment") {
       tone = "neutral";
     } else {
       tone =
@@ -185,16 +230,13 @@ export function performSimulationAction(
             : tone;
     }
     if (
-      !["ppe-scene", "control-hazards", "gcs-assessment"].includes(action.id) &&
+      !["ppe-scene", "control-hazards"].includes(action.id) &&
       !state.completedActionIds.includes("control-hazards")
     ) {
       message = `現場危害尚未完成控制。${message}`;
-      tone = "danger";
-    } else if (
-      action.id === "gcs-assessment" &&
-      !state.completedActionIds.includes("control-hazards")
-    ) {
-      message = `現場危害尚未完成控制。${message}`;
+      if (!deferProcedureFeedback && action.id !== "gcs-assessment") {
+        tone = "danger";
+      }
     }
   }
 
@@ -212,8 +254,33 @@ export function performSimulationAction(
   }
 
   const condition = getPatientCondition(physiology);
+  const wasArrest = state.status === "arrest";
   const status =
     transported ? "transported" : condition <= 8 ? "arrest" : "active";
+  let resuscitationFailures = state.resuscitationFailures;
+  if (action.id === "cpr" && resolution && resolution.scoreModifier < 0) {
+    resuscitationFailures += 1;
+  }
+
+  const logEntries: SimulationState["log"] = [
+    {
+      id: `${action.id}-${state.elapsed}`,
+      label: action.label,
+      message,
+      elapsed: state.elapsed + duration,
+      tone,
+    },
+  ];
+  if (wasArrest && status === "active" && action.id === "cpr") {
+    logEntries.unshift({
+      id: `rosc-${state.elapsed}`,
+      label: "ROSC",
+      message:
+        "循環徵象改善。請立即重新評估呼吸與意識，並安排高優先送醫。",
+      elapsed: state.elapsed + duration,
+      tone: "neutral",
+    });
+  }
 
   return {
     elapsed: state.elapsed + duration,
@@ -226,23 +293,18 @@ export function performSimulationAction(
     activeTreatments,
     score: Math.max(0, state.score + Math.round(scoreDelta * difficulty.scoreMultiplier)),
     status,
+    resuscitationFailures,
     playerReport: {
       ...state.playerReport,
       ...(resolution?.playerGcs ? { gcs: resolution.playerGcs } : {}),
       ...(resolution?.transportReason
         ? { transportReason: resolution.transportReason }
         : {}),
+      ...(resolution?.transportIndicators
+        ? { transportIndicators: resolution.transportIndicators }
+        : {}),
     },
-    log: [
-      {
-        id: `${action.id}-${state.elapsed}`,
-        label: action.label,
-        message,
-        elapsed: state.elapsed + duration,
-        tone,
-      },
-      ...state.log,
-    ],
+    log: [...logEntries, ...state.log],
   };
 }
 
@@ -295,6 +357,8 @@ function buildActionResult(
       return `OPQRST 問診結果：${observation("opqrst")}`;
     case "fast":
       return `中風評估：${observation("stroke")}`;
+    case "bleeding-control":
+      return `出血控制處置完成；目前出血率 ${physiology.bleedingRate.toFixed(1)}/10，需持續追蹤灌流。`;
     case "direct-pressure":
       return `直接加壓後出血率降至 ${physiology.bleedingRate.toFixed(1)}/10；仍需目視並追蹤灌流。`;
     case "tourniquet":
@@ -322,9 +386,7 @@ function buildActionResult(
     case "bvm":
       return `輔助通氣後氧合改善，推估 SpO₂ ${Math.round(physiology.spo2)}%；需重新量測確認。`;
     case "cpr":
-      return "已完成一個 CPR 循環；立即重新確認心律與循環徵象。";
-    case "aed-analyze":
-      return "AED 分析完成；依機器指示持續 CPR 或準備電擊，並確認所有人離開病患。";
+      return "已依生存之鏈完成 CPR 與 AED 分析；立即重新確認循環徵象，並依機器指示持續按壓或準備電擊。";
     default:
       return `已完成「${action.label}」，目前病況指標 ${getPatientCondition(physiology)}。`;
   }
@@ -639,6 +701,48 @@ export function measurementIsStale(
   return elapsed - measurement.measuredAt >= 90;
 }
 
+export function evaluateSafetyCompliance(state: SimulationState) {
+  const warnings: string[] = [];
+  let penalty = 0;
+  if (!state.completedActionIds.includes("ppe-scene")) {
+    warnings.push("未執行場景安全評估（PPE／初步掃描）");
+    penalty += 45;
+  }
+  if (!state.completedActionIds.includes("control-hazards")) {
+    warnings.push("未完成現場危害控制");
+    penalty += 35;
+  }
+  return { warnings, penalty };
+}
+
+export function buildDebriefSuggestions(
+  scenario: SimulationScenario,
+  state: SimulationState,
+) {
+  const missed = scenario.recommendedActionIds.filter(
+    (id) => !state.completedActionIds.includes(id),
+  );
+  const suggestions: string[] = [];
+  if (missed.includes("ppe-scene") || missed.includes("control-hazards")) {
+    suggestions.push("下次值勤請先完成場景安全與危害控制，再接觸病患。");
+  }
+  if (missed.some((id) => ["check-response", "check-breathing", "check-pulse"].includes(id))) {
+    suggestions.push("初級評估（意識、呼吸、循環）應在處置前完成。");
+  }
+  if (state.status === "dead") {
+    suggestions.push("復甦無效時應依程序宣告，並檢視 CPR／AED 流程是否完整。");
+  } else if (state.status === "arrest") {
+    suggestions.push("送醫前仍處於極危急狀態，應優先完成復甦處置。");
+  }
+  if (missed.includes("transport-critical") || missed.includes(scenario.transportDestination)) {
+    suggestions.push("依病況選擇適當層級醫院並預告。");
+  }
+  if (suggestions.length === 0) {
+    suggestions.push("整體流程完整，可再精進時間分配與重測時機。");
+  }
+  return { missed, suggestions };
+}
+
 export function summarizeOutcome(
   scenario: SimulationScenario,
   state: SimulationState,
@@ -648,13 +752,16 @@ export function summarizeOutcome(
     state.completedActionIds.includes(id),
   ).length;
   const completionRatio = completedRecommended / scenario.recommendedActionIds.length;
+  const safety = evaluateSafetyCompliance(state);
+  const debrief = buildDebriefSuggestions(scenario, state);
   const score = Math.max(
     0,
     state.score +
       scorePlayerGcs(state) +
       Math.round(getPatientCondition(state.physiology) * 0.35) +
       Math.round(completionRatio * 35) -
-      dangerousChoices * 5,
+      dangerousChoices * 5 -
+      safety.penalty,
   );
   return {
     scenarioId: scenario.id,
@@ -663,13 +770,19 @@ export function summarizeOutcome(
     elapsed: state.elapsed,
     bestChoices: completedRecommended,
     dangerousChoices,
+    safetyWarnings: safety.warnings,
+    safetyPenalty: safety.penalty,
+    missedRecommended: debrief.missed,
+    suggestions: debrief.suggestions,
     grade: score >= 155 ? "S" : score >= 120 ? "A" : score >= 80 ? "B" : "C",
     outcome:
-      state.status === "arrest"
-        ? "病患在現場陷入極危急狀態。"
-        : getPatientCondition(state.physiology) >= 60
-          ? "病患在相對穩定狀態下完成送醫。"
-          : "病患病況仍不穩定，送醫途中需密切再評估。",
+      state.status === "dead"
+        ? "現場已宣告死亡，未恢復自主循環。"
+        : state.status === "arrest"
+          ? "病患在現場陷入極危急狀態。"
+          : getPatientCondition(state.physiology) >= 60
+            ? "病患在相對穩定狀態下完成送醫。"
+            : "病患病況仍不穩定，送醫途中需密切再評估。",
   } as const;
 }
 
@@ -802,12 +915,12 @@ function applyTreatment(
       break;
     case "cpr":
       if (next.perfusion > 10)
-        return { physiology: next, warning: "病患仍有循環徵象，不應執行胸外按壓。" };
+        return { physiology: next, warning: "病患仍有循環徵象，不應執行 CPR 或 AED 分析。" };
       next.perfusion += 16;
       break;
-    case "aed-analyze":
-      if (next.perfusion > 10)
-        return { physiology: next, warning: "病患仍有脈搏，不符合 AED 分析情境。" };
+    case "bleeding-control":
+      break;
+    case "declare-death":
       break;
   }
   return { physiology: normalizePhysiology(next) };

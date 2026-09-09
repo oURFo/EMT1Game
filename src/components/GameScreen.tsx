@@ -56,7 +56,12 @@ export function GameScreen({
   const condition = getPatientCondition(state.physiology);
   const resuscitationMode = state.status === "arrest";
   const actions = resuscitationMode
-    ? RESUSCITATION_ACTION_IDS.map((id) => actionById[id]).filter(Boolean)
+    ? RESUSCITATION_ACTION_IDS.map((id) => actionById[id])
+        .filter(Boolean)
+        .filter(
+          (item) =>
+            item.id !== "declare-death" || state.resuscitationFailures >= 3,
+        )
     : simulationActions.filter((item) => item.category === activeCategory);
   const latestResult = state.log[0];
 
@@ -203,6 +208,8 @@ export function GameScreen({
         {resuscitationMode && (
           <p className="resuscitation-hint">
             危急模式下僅開放再評估與復甦相關處置。完成 CPR／AED 並恢復循環後，即可繼續一般評估與送醫。
+            {state.resuscitationFailures >= 3 &&
+              " 若復甦無效，可選擇「宣告現場死亡並結案」。"}
           </p>
         )}
         <div className={`sim-action-list${resuscitationMode ? " resuscitation-mode" : ""}`}>
@@ -299,9 +306,7 @@ function requiresProcedure(actionId: string) {
     "oxygen",
     "bvm",
     "airway-management",
-    "direct-pressure",
-    "tourniquet",
+    "bleeding-control",
     "cpr",
-    "aed-analyze",
   ].includes(actionId);
 }

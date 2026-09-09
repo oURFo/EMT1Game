@@ -199,6 +199,8 @@ export interface SimulationAction {
   repeatable?: boolean;
 }
 
+export type CaseTier = "intro" | "intermediate" | "advanced";
+
 export interface SimulationScenario {
   id: string;
   title: string;
@@ -207,6 +209,7 @@ export interface SimulationScenario {
   patient: string;
   age: number;
   chiefComplaint: string;
+  caseTier: CaseTier;
   environment: Environment;
   initialPhysiology: Physiology;
   trends: Partial<Record<keyof Physiology, number>>;
@@ -241,7 +244,8 @@ export interface SimulationState {
   activeTreatments: string[];
   score: number;
   log: SimulationLog[];
-  status: "active" | "transported" | "arrest";
+  status: "active" | "transported" | "arrest" | "dead";
+  resuscitationFailures: number;
   playerReport: {
     gcs?: {
       eye: number;
@@ -250,6 +254,7 @@ export interface SimulationState {
       total: number;
     };
     transportReason?: string;
+    transportIndicators?: string[];
   };
 }
 
@@ -265,4 +270,6 @@ export interface ProcedureResolution {
     total: number;
   };
   transportReason?: string;
+  transportIndicators?: string[];
+  appliedActionId?: string;
 }

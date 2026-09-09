@@ -7,6 +7,7 @@ import {
   getObservation,
   getPatientCondition,
 } from "../game/simulationEngine";
+import { buildTransportIndicatorOptions } from "../game/transportIndicators";
 import type {
   ProcedureResolution,
   SimulationAction,
@@ -79,7 +80,16 @@ export function ProcedureModal({
           <AirwayProcedure scenario={scenario} state={state} onComplete={(result) => onComplete(actionById["airway-management"], result)} />
         )}
         {kind === "bleeding" && (
-          <BleedingProcedure state={state} onComplete={(selected, result) => onComplete(actionById[selected], result)} />
+          <BleedingProcedure
+            state={state}
+            onComplete={(appliedActionId, result) =>
+              onComplete(actionById["bleeding-control"], {
+                ...result,
+                appliedActionId,
+                message: "已記錄出血控制處置，技術評估於結案時對照。",
+              })
+            }
+          />
         )}
         {kind === "cpr" && (
           <CprProcedure state={state} onComplete={(result) => onComplete(actionById.cpr, result)} />
@@ -260,11 +270,7 @@ function OxygenProcedure({
       duration: 28,
       scoreModifier: correct ? 22 : -16,
       physiologyDelta: { spo2: gain, oxygenation: gain * 1.5 },
-      message: !indicated
-        ? `目前 SpO₂ 約 ${Math.round(spo2)}%，未先確認給氧適應症便選擇${labels[device]} ${flow} L/min。`
-        : correct
-          ? `選擇${labels[device]} ${flow} L/min，裝置與流量符合目前模擬病況；請重新量測 SpO₂。`
-          : `${labels[device]}設定 ${flow} L/min 與目前需求或裝置安全流量不符，氧合改善有限。`,
+      message: `已記錄氧氣治療：${labels[device]} ${flow} L/min。請重新量測 SpO₂ 確認效果。`,
     });
   }
 
@@ -302,11 +308,7 @@ function BvmProcedure({
       duration: 45,
       scoreModifier: correct ? 28 : -22,
       physiologyDelta: correct ? { oxygenation: 24, spo2: 10 } : { oxygenation: -4 },
-      message: !indicated
-        ? "患者目前仍有相對有效自主呼吸，直接使用 BVM 可能造成過度通氣。"
-        : correct
-          ? `成人面罩、${position === "jaw" ? "下顎推舉" : "適當擺位"}、雙人密合，以每分鐘 ${rate} 次通氣；胸廓規則起伏且漏氣少。`
-          : `BVM 技術未達有效通氣：面罩${mask === "adult" ? "尺寸適合" : "尺寸不合"}、${seal === "two" ? "雙人密合" : "單人密合不穩"}、頻率 ${rate}/min。`,
+      message: `已記錄 BVM 輔助通氣（${rate} 次／分）。請觀察胸廓起伏並重新評估呼吸。`,
     });
   }
   return (
@@ -342,9 +344,7 @@ function AirwayProcedure({
       duration: 35 + (suction === "yes" ? 15 : 0) + (adjunct !== "none" ? 12 : 0),
       scoreModifier: correct ? 22 : -16,
       physiologyDelta: correct ? { oxygenation: 8 } : { oxygenation: -8 },
-      message: correct
-        ? `已完成${position === "jaw" ? "下顎推舉" : "壓額抬下巴"}，${secretions ? "抽吸後分泌物清除" : "未見需抽吸物"}，輔具選擇適當；呼吸道重新評估為暢通。`
-        : `呼吸道處置需修正：${!suctionCorrect ? "抽吸判斷不符；" : ""}${!adjunctCorrect ? "輔具與意識／咽反射不符。" : ""}`,
+      message: "已記錄呼吸道處置。請重新聽診與評估通氣是否改善。",
     });
   }
   return (
@@ -425,11 +425,9 @@ function CprProcedure({
       duration: 150,
       scoreModifier: correct ? 32 : -28,
       physiologyDelta: correct ? { perfusion: 18, oxygenation: 8 } : { perfusion: -6 },
-      message: !arrest
-        ? "患者仍有循環徵象，不應開始 CPR 或進行 AED 分析。"
-        : correct
-          ? `已呼叫支援，以 ${rate}/min、${ratio} 執行 CPR；貼片位置正確，分析前確認所有人離開病患。`
-          : "復甦流程不完整：請確認脈搏、呼叫支援、壓胸 100–120/min、30:2、貼片位置及分析前離開病患。",
+      message: correct
+        ? "已記錄 CPR 與 AED 復甦流程。請立即重新確認循環徵象。"
+        : "已記錄 CPR 與 AED 復甦嘗試。若仍無 ROSC，請持續高品質按壓或依程序宣告。",
     });
   }
   return (
@@ -461,6 +459,11 @@ function TransportProcedure({
   const reasonRef = useRef<HTMLTextAreaElement>(null);
   const [charCount, setCharCount] = useState(0);
   const [canSubmit, setCanSubmit] = useState(false);
+  const indicatorOptions = useMemo(
+    () => buildTransportIndicatorOptions(scenario, state),
+    [scenario, state],
+  );
+  const [selectedIndicators, setSelectedIndicators] = useState<string[]>([]);
 
   function syncReason() {
     const value = reasonRef.current?.value ?? "";
@@ -468,6 +471,12 @@ function TransportProcedure({
     const contentLength = trimmed.replace(/\s/g, "").length;
     setCharCount(trimmed.length);
     setCanSubmit(contentLength >= 2);
+  }
+
+  function toggleIndicator(id: string) {
+    setSelectedIndicators((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
+    );
   }
 
   function submit() {
@@ -478,6 +487,7 @@ function TransportProcedure({
       scoreModifier: trimmed.length >= 18 ? 8 : 0,
       message: `已選擇「${action.label}」，危急個案送醫原因紀錄為：「${trimmed}」。`,
       transportReason: trimmed,
+      transportIndicators: selectedIndicators,
     });
   }
 
@@ -486,8 +496,37 @@ function TransportProcedure({
       <TransportReferencePanel scenario={scenario} state={state} />
       <div className="transport-entry">
         <p className="procedure-instruction">
-          你即將把「{scenario.patient}」送往「{action.label.replace("送往", "")}」。請對照左側傷病患資料，以救護紀錄方式說明為何判定為危急個案。
+          你即將把「{scenario.patient}」送往「{action.label.replace("送往", "")}」。請勾選支持送醫判斷的客觀資料，並撰寫送醫原因。
         </p>
+        {indicatorOptions.length > 0 ? (
+          <fieldset className="transport-indicator-picker">
+            <legend>勾選支持危急送醫的客觀資料</legend>
+            {(["生命徵象", "評估發現", "危急標準"] as const).map((group) => {
+              const groupItems = indicatorOptions.filter((item) => item.group === group);
+              if (!groupItems.length) return null;
+              return (
+                <div className="transport-indicator-group" key={group}>
+                  <h4>{group}</h4>
+                  {groupItems.map((item) => (
+                    <label className="transport-indicator-option" key={item.id}>
+                      <input
+                        checked={selectedIndicators.includes(item.id)}
+                        onChange={() => toggleIndicator(item.id)}
+                        type="checkbox"
+                      />
+                      <span>
+                        <strong>{item.label}</strong>
+                        <small>{item.detail}</small>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              );
+            })}
+          </fieldset>
+        ) : (
+          <p className="locked-copy">尚未取得可勾選的量測或評估資料，請先完成評估後再送醫。</p>
+        )}
         <label className="transport-reason-field">
           <span>送醫原因（危急個案）</span>
           <textarea
@@ -819,7 +858,7 @@ function procedureKind(id: string) {
   if (id === "oxygen") return "oxygen";
   if (id === "bvm") return "bvm";
   if (id === "airway-management") return "airway";
-  if (["direct-pressure", "tourniquet"].includes(id)) return "bleeding";
+  if (id === "bleeding-control") return "bleeding";
   if (id.startsWith("transport-")) return "transport";
   return "cpr";
 }
