@@ -22,6 +22,14 @@ describe("simulation content", () => {
     expect(simulationActions.filter((item) => item.kind === "transport").length).toBeGreaterThanOrEqual(4);
   });
 
+  it("does not expose internal variant labels in player-facing copy", () => {
+    for (const scenario of simulationScenarios) {
+      expect(scenario.title).not.toMatch(/變體|路徑 \d/);
+      expect(scenario.environment.location).not.toMatch(/變體|路徑 \d/);
+      expect(scenario.environment.hazards.join(" ")).not.toMatch(/變體|路徑 \d/);
+    }
+  });
+
   it.each(simulationScenarios)("$title has valid environment and action rules", (scenario) => {
     expect(scenario.environment.location).not.toBe("");
     expect(scenario.environment.weather).not.toBe("");

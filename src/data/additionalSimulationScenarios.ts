@@ -483,18 +483,18 @@ function expandSeeds(base: Seed[], target: number): Seed[] {
     const source = base[expanded.length % base.length];
     expanded.push([
       `${source[0]}-v${variant}`,
-      `${source[1]}（現場變體 ${variant}）`,
+      source[1],
       source[2],
       source[3],
       source[4],
       source[5],
       source[6],
-      `${source[7]} · 變體 ${variant}`,
+      source[7],
       source[8],
       source[9],
       source[10],
-      `${source[11]} · 路徑 ${variant}`,
-      [...source[12], `現場變體 ${variant}`],
+      source[11],
+      [...source[12]],
     ]);
     variant += 1;
   }

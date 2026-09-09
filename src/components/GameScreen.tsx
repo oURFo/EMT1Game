@@ -207,7 +207,7 @@ export function GameScreen({
         )}
         {resuscitationMode && (
           <p className="resuscitation-hint">
-            危急模式下僅開放再評估與復甦相關處置。完成 CPR／AED 並恢復循環後，即可繼續一般評估與送醫。
+            病患已極危急，動作分類分頁已暫停。請先完成下方復甦處置；恢復循環後即可恢復一般評估與送醫。
             {state.resuscitationFailures >= 3 &&
               " 若復甦無效，可選擇「宣告現場死亡並結案」。"}
           </p>
