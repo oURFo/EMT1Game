@@ -2,8 +2,6 @@ import { useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { actionById } from "../data/actions";
 import {
-  assessCriticalCase,
-  getGcsDisplay,
   getObservation,
   getPatientCondition,
 } from "../game/simulationEngine";
@@ -548,7 +546,6 @@ function TransportReferencePanel({
   scenario: SimulationScenario;
   state: SimulationState;
 }) {
-  const assessment = assessCriticalCase(scenario, state);
   const condition = getPatientCondition(state.physiology);
 
   return (
@@ -600,35 +597,6 @@ function TransportReferencePanel({
                 <p>{getObservation(scenario, state, key)}</p>
               </article>
             ))
-        )}
-      </div>
-
-      <div className="transport-reference-section">
-        <h4>客觀危急徵象</h4>
-        {assessment.criteria.length ? (
-          <div className="critical-criteria-list compact">
-            {assessment.criteria.map((criterion) => (
-              <div key={`${criterion.category}-${criterion.standard}`}>
-                <span>{criterion.category}</span>
-                <strong>{criterion.standard}</strong>
-                <p>{criterion.evidence}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p>目前客觀數值未跨越標準危急門檻。</p>
-        )}
-        <div className="gcs-comparison">
-          <span>送醫時 GCS</span>
-          <strong>{getGcsDisplay(state.physiology.consciousness)}</strong>
-        </div>
-        {state.playerReport.gcs && (
-          <div className="gcs-comparison">
-            <span>玩家 GCS 評分</span>
-            <strong>
-              E{state.playerReport.gcs.eye} V{state.playerReport.gcs.verbal} M{state.playerReport.gcs.motor}＝{state.playerReport.gcs.total}
-            </strong>
-          </div>
         )}
       </div>
     </aside>
