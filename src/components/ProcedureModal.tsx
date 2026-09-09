@@ -1,12 +1,41 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { actionById } from "../data/actions";
+import {
+  assessCriticalCase,
+  getGcsDisplay,
+  getObservation,
+  getPatientCondition,
+} from "../game/simulationEngine";
 import type {
   ProcedureResolution,
   SimulationAction,
   SimulationScenario,
   SimulationState,
 } from "../game/types";
+
+const findingKeys = [
+  "appearance",
+  "skin",
+  "airway",
+  "breathing",
+  "injuries",
+  "bleeding",
+  "sampleHistory",
+  "opqrst",
+  "stroke",
+] as const;
+const findingLabels = {
+  appearance: "整體外觀",
+  skin: "膚色與皮膚",
+  airway: "呼吸道",
+  breathing: "呼吸觀察",
+  injuries: "傷處",
+  bleeding: "出血",
+  sampleHistory: "SAMPLE 病史",
+  opqrst: "OPQRST 症狀分析",
+  stroke: "神經學評估",
+} as const;
 
 interface ProcedureModalProps {
   action: SimulationAction;
@@ -29,7 +58,7 @@ export function ProcedureModal({
   const kind = procedureKind(action.id);
   return (
     <div className="procedure-backdrop" role="dialog" aria-modal="true">
-      <section className="procedure-modal panel">
+      <section className={`procedure-modal panel${kind === "transport" ? " transport-modal" : ""}`}>
         <header>
           <div>
             <span className="eyebrow">INTERACTIVE PROCEDURE</span>
@@ -59,6 +88,7 @@ export function ProcedureModal({
           <TransportProcedure
             action={action}
             scenario={scenario}
+            state={state}
             onComplete={(result) => onComplete(action, result)}
           />
         )}
@@ -82,8 +112,23 @@ function GcsProcedure({
   const [eye, setEye] = useState("");
   const [verbal, setVerbal] = useState("");
   const [motor, setMotor] = useState("");
-  const [total, setTotal] = useState("");
   const actual = useMemo(() => gcsFromConsciousness(state.physiology.consciousness), [state.physiology.consciousness]);
+  const computedTotal = useMemo(() => {
+    const e = Number(eye);
+    const v = Number(verbal);
+    const m = Number(motor);
+    if (
+      e >= 1 &&
+      e <= 4 &&
+      v >= 1 &&
+      v <= 5 &&
+      m >= 1 &&
+      m <= 6
+    ) {
+      return e + v + m;
+    }
+    return null;
+  }, [eye, motor, verbal]);
 
   function perform(
     id: string,
@@ -105,46 +150,22 @@ function GcsProcedure({
   }
 
   function submit() {
-    const entered = { eye: Number(eye), verbal: Number(verbal), motor: Number(motor), total: Number(total) };
-    if (
-      entered.eye < 1 ||
-      entered.eye > 4 ||
-      entered.verbal < 1 ||
-      entered.verbal > 5 ||
-      entered.motor < 1 ||
-      entered.motor > 6 ||
-      entered.total < 3 ||
-      entered.total > 15
-    ) return;
-    const actualTotal = actual.eye + actual.verbal + actual.motor;
-    const correct =
-      entered.eye === actual.eye &&
-      entered.verbal === actual.verbal &&
-      entered.motor === actual.motor &&
-      entered.total === actualTotal;
-    const errors = [
-      entered.eye !== actual.eye ? "E" : "",
-      entered.verbal !== actual.verbal ? "V" : "",
-      entered.motor !== actual.motor ? "M" : "",
-      entered.total !== actualTotal ? "總分" : "",
-    ].filter(Boolean);
+    if (computedTotal === null) return;
+    const entered = {
+      eye: Number(eye),
+      verbal: Number(verbal),
+      motor: Number(motor),
+      total: computedTotal,
+    };
     onComplete({
       duration: 15 + responses.reduce((sum, item) => sum + item.duration, 0),
-      scoreModifier: correct ? 24 : -errors.length * 6,
-      message: `GCS 已記錄：玩家提交 E${entered.eye} V${entered.verbal} M${entered.motor}，總分 ${entered.total}。正確答案將於送醫結算時對照。`,
+      scoreModifier: 0,
+      message: `GCS 已記錄：E${entered.eye} V${entered.verbal} M${entered.motor}＝${entered.total}。`,
       playerGcs: entered,
     });
   }
 
-  const scoresValid =
-    Number(eye) >= 1 &&
-    Number(eye) <= 4 &&
-    Number(verbal) >= 1 &&
-    Number(verbal) <= 5 &&
-    Number(motor) >= 1 &&
-    Number(motor) <= 6 &&
-    Number(total) >= 3 &&
-    Number(total) <= 15;
+  const scoresValid = computedTotal !== null;
   return (
     <div className="procedure-body">
       <p className="procedure-instruction">分別蒐集睜眼、語言及最佳動作反應。畫面只呈現患者行為，不提示對應分數；若高階刺激已有反應，不應再施加疼痛刺激。</p>
@@ -192,10 +213,13 @@ function GcsProcedure({
         <NumberInput label="E 睜眼" min={1} max={4} value={eye} onChange={setEye} />
         <NumberInput label="V 語言" min={1} max={5} value={verbal} onChange={setVerbal} />
         <NumberInput label="M 動作" min={1} max={6} value={motor} onChange={setMotor} />
-        <NumberInput label="GCS 總分" min={3} max={15} value={total} onChange={setTotal} />
+        <div className="total-score">
+          <span>GCS 總分</span>
+          <strong>{computedTotal ?? "—"}</strong>
+        </div>
       </div>
       <p className="gcs-submit-note">
-        評估動作供判斷患者反應使用；完成評分欄位後即可送出，不強制施加不必要的重複或疼痛刺激。
+        總分會依 E、V、M 自動加總。評估動作供判斷患者反應使用；完成評分欄位後即可送出。
       </p>
       <SubmitButton
         disabled={!scoresValid}
@@ -426,15 +450,29 @@ function CprProcedure({
 function TransportProcedure({
   action,
   scenario,
+  state,
   onComplete,
 }: {
   action: SimulationAction;
   scenario: SimulationScenario;
+  state: SimulationState;
   onComplete: (result: ProcedureResolution) => void;
 }) {
-  const [reason, setReason] = useState("");
-  const trimmed = reason.trim();
+  const reasonRef = useRef<HTMLTextAreaElement>(null);
+  const [charCount, setCharCount] = useState(0);
+  const [canSubmit, setCanSubmit] = useState(false);
+
+  function syncReason() {
+    const value = reasonRef.current?.value ?? "";
+    const trimmed = value.trim();
+    const contentLength = trimmed.replace(/\s/g, "").length;
+    setCharCount(trimmed.length);
+    setCanSubmit(contentLength >= 2);
+  }
+
   function submit() {
+    const trimmed = (reasonRef.current?.value ?? "").trim();
+    if (trimmed.replace(/\s/g, "").length < 2) return;
     onComplete({
       duration: action.duration + 25,
       scoreModifier: trimmed.length >= 18 ? 8 : 0,
@@ -442,25 +480,163 @@ function TransportProcedure({
       transportReason: trimmed,
     });
   }
+
   return (
-    <div className="procedure-body">
-      <p className="procedure-instruction">
-        你即將把「{scenario.patient}」送往「{action.label.replace("送往", "")}」。請以救護紀錄方式說明為何判定為危急個案。
-      </p>
-      <label className="transport-reason-field">
-        <span>送醫原因（危急個案）</span>
-        <textarea
-          maxLength={300}
-          onChange={(event) => setReason(event.target.value)}
-          placeholder="例如：意識改變、呼吸窘迫、血氧偏低，需高優先送醫……"
-          rows={5}
-          value={reason}
-        />
-        <small>{trimmed.length}/300 字</small>
-      </label>
-      <SubmitButton disabled={trimmed.length < 6} onClick={submit} />
+    <div className="procedure-body transport-procedure-layout">
+      <TransportReferencePanel scenario={scenario} state={state} />
+      <div className="transport-entry">
+        <p className="procedure-instruction">
+          你即將把「{scenario.patient}」送往「{action.label.replace("送往", "")}」。請對照左側傷病患資料，以救護紀錄方式說明為何判定為危急個案。
+        </p>
+        <label className="transport-reason-field">
+          <span>送醫原因（危急個案）</span>
+          <textarea
+            ref={reasonRef}
+            defaultValue=""
+            maxLength={300}
+            onCompositionEnd={syncReason}
+            onInput={syncReason}
+            placeholder="例如：意識改變、呼吸窘迫、血氧偏低，需高優先送醫……"
+            rows={5}
+          />
+          <small>{charCount}/300 字 · 至少 2 字即可送出</small>
+        </label>
+        <SubmitButton disabled={!canSubmit} onClick={submit} />
+      </div>
     </div>
   );
+}
+
+function TransportReferencePanel({
+  scenario,
+  state,
+}: {
+  scenario: SimulationScenario;
+  state: SimulationState;
+}) {
+  const assessment = assessCriticalCase(scenario, state);
+  const condition = getPatientCondition(state.physiology);
+
+  return (
+    <aside className="transport-reference panel">
+      <span className="eyebrow">PATIENT DATA</span>
+      <h3>傷病患資料</h3>
+      <div className="transport-reference-heading">
+        <div>
+          <strong>{scenario.patient}，{scenario.age} 歲</strong>
+          <p>{scenario.chiefComplaint}</p>
+        </div>
+        <div className="transport-condition">
+          <strong>{condition}</strong>
+          <span>病況指標</span>
+        </div>
+      </div>
+
+      <div className="monitor-grid transport-monitor-grid">
+        <ReferenceMonitor
+          label="意識 AVPU"
+          measurement={state.measurements.appearance}
+          value={
+            state.completedActionIds.includes("check-response")
+              ? consciousnessLabel(state.physiology.consciousness)
+              : null
+          }
+          age={state.elapsed}
+          measuredAt={findLogTime(state, "check-response")}
+        />
+        <ReferenceMonitor label="GCS" measurement={state.measurements.gcs} age={state.elapsed} />
+        <ReferenceMonitor label="脈搏" measurement={state.measurements.pulse} age={state.elapsed} />
+        <ReferenceMonitor label="呼吸" measurement={state.measurements.respiratoryRate} age={state.elapsed} />
+        <ReferenceMonitor label="血壓" measurement={state.measurements.bloodPressure} age={state.elapsed} />
+        <ReferenceMonitor label="SpO₂" measurement={state.measurements.spo2} age={state.elapsed} />
+        <ReferenceMonitor label="體溫" measurement={state.measurements.temperature} age={state.elapsed} />
+        <ReferenceMonitor label="血糖" measurement={state.measurements.glucose} age={state.elapsed} />
+      </div>
+
+      <div className="transport-reference-section">
+        <h4>現場與評估資訊</h4>
+        {state.revealed.length === 0 ? (
+          <p className="locked-copy">尚未取得額外觀察或問診資訊。</p>
+        ) : (
+          findingKeys
+            .filter((key) => state.revealed.includes(key))
+            .map((key) => (
+              <article key={key}>
+                <span>{findingLabels[key]}</span>
+                <p>{getObservation(scenario, state, key)}</p>
+              </article>
+            ))
+        )}
+      </div>
+
+      <div className="transport-reference-section">
+        <h4>客觀危急徵象</h4>
+        {assessment.criteria.length ? (
+          <div className="critical-criteria-list compact">
+            {assessment.criteria.map((criterion) => (
+              <div key={`${criterion.category}-${criterion.standard}`}>
+                <span>{criterion.category}</span>
+                <strong>{criterion.standard}</strong>
+                <p>{criterion.evidence}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>目前客觀數值未跨越標準危急門檻。</p>
+        )}
+        <div className="gcs-comparison">
+          <span>送醫時 GCS</span>
+          <strong>{getGcsDisplay(state.physiology.consciousness)}</strong>
+        </div>
+        {state.playerReport.gcs && (
+          <div className="gcs-comparison">
+            <span>玩家 GCS 評分</span>
+            <strong>
+              E{state.playerReport.gcs.eye} V{state.playerReport.gcs.verbal} M{state.playerReport.gcs.motor}＝{state.playerReport.gcs.total}
+            </strong>
+          </div>
+        )}
+      </div>
+    </aside>
+  );
+}
+
+function ReferenceMonitor({
+  label,
+  measurement,
+  value,
+  age,
+  measuredAt,
+}: {
+  label: string;
+  measurement?: { value: string; measuredAt: number };
+  value?: string | null;
+  age: number;
+  measuredAt?: number;
+}) {
+  const time = measurement?.measuredAt ?? measuredAt;
+  const stale = time !== undefined && age - time >= 90;
+  return (
+    <div className={`monitor-value ${stale ? "stale" : ""}`}>
+      <span>{label}</span>
+      <strong>{measurement?.value ?? value ?? "未量測"}</strong>
+      <small>
+        {time === undefined ? "需評估／使用儀器" : `${formatProcedureTime(time)} 取得${stale ? " · 已過期" : ""}`}
+      </small>
+    </div>
+  );
+}
+
+function findLogTime(state: SimulationState, actionId: string) {
+  return state.log.find((entry) => entry.id.startsWith(actionId))?.elapsed;
+}
+
+function consciousnessLabel(value: number) {
+  return value >= 85 ? "A－清醒" : value >= 60 ? "V－對聲音" : value >= 25 ? "P－對疼痛" : "U－無反應";
+}
+
+function formatProcedureTime(seconds: number) {
+  return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
 function ChoiceGroup({

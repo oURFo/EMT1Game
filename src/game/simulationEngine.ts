@@ -174,13 +174,27 @@ export function performSimulationAction(
   }
   if (resolution) {
     message = resolution.message;
-    tone = resolution.scoreModifier < 0 ? "danger" : resolution.scoreModifier > 0 ? "good" : tone;
+    if (action.id === "gcs-assessment") {
+      tone = "neutral";
+    } else {
+      tone =
+        resolution.scoreModifier < 0
+          ? "danger"
+          : resolution.scoreModifier > 0
+            ? "good"
+            : tone;
+    }
     if (
-      !["ppe-scene", "control-hazards"].includes(action.id) &&
+      !["ppe-scene", "control-hazards", "gcs-assessment"].includes(action.id) &&
       !state.completedActionIds.includes("control-hazards")
     ) {
       message = `現場危害尚未完成控制。${message}`;
       tone = "danger";
+    } else if (
+      action.id === "gcs-assessment" &&
+      !state.completedActionIds.includes("control-hazards")
+    ) {
+      message = `現場危害尚未完成控制。${message}`;
     }
   }
 
@@ -637,6 +651,7 @@ export function summarizeOutcome(
   const score = Math.max(
     0,
     state.score +
+      scorePlayerGcs(state) +
       Math.round(getPatientCondition(state.physiology) * 0.35) +
       Math.round(completionRatio * 35) -
       dangerousChoices * 5,
@@ -872,6 +887,25 @@ function gcsComponents(value: number) {
     verbal: value >= 85 ? 5 : value >= 70 ? 4 : value >= 50 ? 3 : value >= 25 ? 2 : 1,
     motor: value >= 85 ? 6 : value >= 70 ? 5 : value >= 50 ? 4 : value >= 35 ? 3 : value >= 20 ? 2 : 1,
   };
+}
+
+export function scorePlayerGcs(state: SimulationState): number {
+  const player = state.playerReport.gcs;
+  if (!player) return 0;
+  const actual = gcsComponents(state.physiology.consciousness);
+  const actualTotal = actual.eye + actual.verbal + actual.motor;
+  const correct =
+    player.eye === actual.eye &&
+    player.verbal === actual.verbal &&
+    player.motor === actual.motor &&
+    player.total === actualTotal;
+  if (correct) return 24;
+  let errors = 0;
+  if (player.eye !== actual.eye) errors += 1;
+  if (player.verbal !== actual.verbal) errors += 1;
+  if (player.motor !== actual.motor) errors += 1;
+  if (player.total !== actualTotal) errors += 1;
+  return -errors * 6;
 }
 
 function avpuAssessment(value: number): string {

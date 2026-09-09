@@ -10,6 +10,7 @@ import {
   measurementIsStale,
   performSimulationAction,
   RESUSCITATION_ACTION_IDS,
+  summarizeOutcome,
 } from "./simulationEngine";
 
 describe("dynamic patient simulation", () => {
@@ -186,16 +187,34 @@ describe("dynamic patient simulation", () => {
       DIFFICULTIES.standard,
       {
         duration: 52,
-        scoreModifier: 24,
-        message: "GCS 判斷正確。",
+        scoreModifier: 0,
+        message: "GCS 已記錄：E3 V4 M5＝12。",
         playerGcs: { eye: 3, verbal: 4, motor: 5, total: 12 },
       },
     );
 
     expect(result.elapsed).toBe(52);
     expect(result.measurements.gcs?.value).toMatch(/^E\d V\d M\d＝\d+$/);
-    expect(result.log[0].message).toContain("GCS 判斷正確");
+    expect(result.log[0].message).toContain("GCS 已記錄");
+    expect(result.log[0].tone).toBe("neutral");
     expect(result.playerReport.gcs?.total).toBe(12);
+  });
+
+  it("scores GCS accuracy during debrief instead of on submit", () => {
+    const scenario = simulationScenarios[3];
+    const state = performSimulationAction(
+      scenario,
+      createSimulationState(scenario),
+      actionById["gcs-assessment"],
+      DIFFICULTIES.standard,
+      {
+        duration: 52,
+        scoreModifier: 0,
+        message: "GCS 已記錄：E3 V4 M5＝12。",
+        playerGcs: { eye: 3, verbal: 4, motor: 5, total: 12 },
+      },
+    );
+    expect(summarizeOutcome(scenario, state).score).toBeGreaterThan(state.score);
   });
 
   it("persists the player's critical transport reason", () => {

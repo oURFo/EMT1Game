@@ -1525,6 +1525,15 @@ button:focus-visible {
   font-size: 0.75rem;
 }
 
+.score-inputs .total-score {
+  display: grid;
+  gap: 6px;
+  align-content: end;
+  padding: 11px;
+  border: 1px solid var(--line);
+  background: #07191d;
+}
+
 .score-inputs input {
   width: 100%;
   padding: 11px;
@@ -1602,6 +1611,101 @@ button:focus-visible {
   cursor: not-allowed;
 }
 
+.procedure-modal.transport-modal {
+  width: min(100%, 1120px);
+}
+
+.transport-procedure-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.transport-reference {
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: rgba(7, 25, 29, 0.72);
+}
+
+.transport-reference h3 {
+  margin: 6px 0 16px;
+}
+
+.transport-reference-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.transport-reference-heading p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.transport-condition {
+  min-width: 88px;
+  text-align: center;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 100, 51, 0.35);
+  background: rgba(255, 100, 51, 0.08);
+}
+
+.transport-condition strong {
+  display: block;
+  font-size: 1.4rem;
+}
+
+.transport-condition span {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.transport-monitor-grid {
+  margin: 0 0 16px;
+}
+
+.transport-reference-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.transport-reference-section h4 {
+  margin: 0 0 12px;
+  color: var(--mint);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.transport-reference-section article {
+  margin-bottom: 12px;
+}
+
+.transport-reference-section article span {
+  display: block;
+  color: var(--mint);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.transport-reference-section article p {
+  margin: 4px 0 0;
+  line-height: 1.55;
+}
+
+.critical-criteria-list.compact > div {
+  margin-bottom: 10px;
+}
+
+.transport-entry {
+  display: grid;
+  gap: 16px;
+}
+
 .transport-reason-field {
   display: grid;
   gap: 8px;
@@ -1641,6 +1745,10 @@ button:focus-visible {
   .procedure-modal {
     max-height: calc(100vh - 16px);
     padding: 20px 16px;
+  }
+
+  .transport-procedure-layout {
+    grid-template-columns: 1fr;
   }
 
   .stimulus-grid,
